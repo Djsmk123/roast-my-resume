@@ -101,6 +101,9 @@ export default function Home() {
       headers: {
         Accept: "application/json",
       },
+      next: {
+        revalidate: 1,
+      }
     })
       .then(async (response) => {
         var data = await response.json();

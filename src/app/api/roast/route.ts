@@ -1,8 +1,8 @@
 import roastRequestSchema from "../../models/roast_request_model";
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
 import PDFParser from 'pdf2json';
-
+export const revalidate = 1; //revalidate api every 1 second
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const configuration = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -17,6 +17,24 @@ enum tones {
     "dark",
 
 }
+const safetySettings = [{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE, }, { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE, }, { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE, }, { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE, },];
+
+
+const words = [
+
+    "BS@K",
+    "B**ch",
+    "M@D@RCH0D",
+    "Fcking",
+    "Chutiy@",
+    "B@nc**d",
+    "Idiot",
+    "F**k",
+    "B@st@rd",
+    "Motherf**ker",
+
+
+]
 
 
 export async function POST(request: Request) {
@@ -60,14 +78,13 @@ export async function POST(request: Request) {
         //parse string to int 
         const roastTone = tones[roastLevel];
         var prompt = `You are a witty assistant asked to create roast based on tone ` + roastTone + `.`;
-
+        if (roastTone == "dark") {
+            prompt += " \n\nPlease using the following words in the roast for impact: " + words.join(", ") + ". and add vulgarity to the roast hindi and english both.";
+        }
         prompt += " Provide only roast text content, not any helper texts.";
+
+
         console.log(prompt);
-
-
-
-
-
 
         let resumeText = roastRequest.textBasedResume?.toString() ?? '';
         if (resumeText === '') {
@@ -117,6 +134,7 @@ async function ResponseHandler(prompt: string, resumeText: string): Promise<Resp
     console.log(content);
     const result = await model.generateContent({
         contents: content,
+        safetySettings: safetySettings,
     });
 
 
