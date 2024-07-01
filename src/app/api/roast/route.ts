@@ -2,7 +2,7 @@ import roastRequestSchema from "../../models/roast_request_model";
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
 import PDFParser from 'pdf2json';
-export const revalidate = 1; //revalidate api every 1 second
+export const revalidate = 0; //revalidate api every 1 second
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const configuration = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -21,20 +21,108 @@ const safetySettings = [{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, thres
 
 
 const words = [
-
-    "BS@K",
-    "B**ch",
-    "M@D@RCH0D",
-    "Fcking",
-    "Chutiy@",
-    "B@nc**d",
-    "Idiot",
-    "F**k",
-    "B@st@rd",
-    "Motherf**ker",
-
-
+    "BC",
+    "MC",
+    "Chutiya",
+    "Bhosdike",
+    "Madarchod",
+    "Behenchod",
+    "Gandu",
+    "Haramkhor",
+    "Saala",
+    "Randi",
+    "Lund",
+    "Lauda",
+    "Lavda",
+    "Kutta",
+    "Kaminey",
+    "Chut",
+    "Chutmarika",
+    "Choot",
+    "Gaandu",
+    "Chodu",
+    "Jhaant",
+    "Jhantu",
+    "Bhadwa",
+    "Bhadwe",
+    "Bhadwi",
+    "Chutke",
+    "Chutiyapa",
+    "Bhen ke lode",
+    "Gand",
+    "Haramzada",
+    "Haramzadi",
+    "Lodu",
+    "Loda",
+    "Randi ka baccha",
+    "Tatti",
+    "Lundtop",
+    "Gandmasti",
+    "Bhen di takke",
+    "Lodu ke baal",
+    "Bhosri",
+    "Bhosda",
+    "Chod",
+    "Gandfat",
+    "Maa ke lode",
+    "Randi ki aulaad",
+    "Bhosadike",
+    "Gand mara",
+    "Behn di",
+    "Lund ke baal",
+    "Chutiya ke",
+    "Tere maa ki",
+    "Bhen ka loda",
+    "Bhadwe ki",
+    "Madarchod ke",
+    "Behen di lode",
+    "Chut ke baal",
+    "Gand ke",
+    "Chut ke",
+    "Behen ke lode",
+    "Bhosdike ke",
+    "Bhosad ke",
+    "Gand me",
+    "Lund ke",
+    "Maa ki chut",
+    "Chut ke lode",
+    "Gand ke baal",
+    "Chodu ke",
+    "Gandu ke",
+    "Haramzade ke",
+    "Haramzadi ke",
+    "Lodu ke",
+    "Loda ke",
+    "Randi ke",
+    "Randi ki chut",
+    "Tatti ke",
+    "Lundtop ke",
+    "Gandmasti ke",
+    "Bhen di takke ke",
+    "Lodu ke baal ke",
+    "Bhosdiwale",
+    "Gandfatt",
+    "Madarchod ki",
+    "Behen di chut",
+    "Maa di chut",
+    "Bhosdike lode",
+    "Chodu ki",
+    "Gandu ki",
+    "Lund ki",
+    "Maa ke lode ke",
+    "Bhen di lode ke",
+    "Chut ki",
+    "Gand ki",
+    "Chutmarika ke",
+    "Jhantu ke",
+    "Jhaant ke",
+    "Bhadwe ke",
+    "Randi ki maa",
+    "Gandfat ke",
+    "Lund ke lode",
+    "Bhosdike ki"
 ]
+
 
 
 export async function POST(request: Request) {
@@ -78,7 +166,7 @@ export async function POST(request: Request) {
         //parse string to int 
         const roastTone = tones[roastLevel];
         var prompt = `You are a witty assistant asked to create roast based on tone ` + roastTone + `.`;
-        if (roastTone == "dark") {
+        if (roastTone == "vulgar") {
             prompt += " \n\nPlease using the following words in the roast for impact: " + words.join(", ") + ". and add vulgarity to the roast hindi and english both.";
         }
         prompt += " Provide only roast text content, not any helper texts.";
