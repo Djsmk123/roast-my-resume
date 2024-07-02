@@ -232,7 +232,7 @@ export default function Home() {
 
 
 
-            <a href="https://github.com/djsmk123" target="_blank" rel="noopener noreferrer" className="ml-2">
+            <a href="https://github.com/Djsmk123/roast-my-resume" target="_blank" rel="noopener noreferrer" className="ml-2">
               <FaGithub size={20} className="text-gray-400 hover:text-gray-600" />
             </a>
 
