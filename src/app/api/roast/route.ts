@@ -103,8 +103,7 @@ export async function POST(request: Request) {
             case "Memer": {
                 //use indian popular meme templates
                 prompt += " \n\nRoast the resume like a memer, use meme context and roast the resume in a memer way.";
-                prompt += "\n\n Use Indian Popular Meme Templates like: \n\n1. 'Aur Batao' \n2. 'Kya Karu Main Itna Cute etc for roasting the resume.";
-                break;
+
 
 
             }
