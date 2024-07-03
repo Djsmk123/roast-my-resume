@@ -85,10 +85,12 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/roastCount",
-          next: {
-        revalidate: 0,
+      {
+        next: {
+          revalidate: 0,
+        }
       }
-         )
+    )
       .then((response) => {
         if (!response.ok) {
           throw new Error("An error occurred while fetching roast count");
