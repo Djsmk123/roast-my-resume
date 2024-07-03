@@ -101,8 +101,12 @@ export async function POST(request: Request) {
         var prompt = `You are a witty assistant asked to create roast based on tone  ` + roastTone + `. use indian context for roasting`;
         switch (roleType) {
             case "Memer": {
-                prompt += " \n\nRoast the resume like a memer, use memes and roast the resume in a memer way.";
+                //use indian popular meme templates
+                prompt += " \n\nRoast the resume like a memer, use meme context and roast the resume in a memer way.";
+                prompt += "\n\n Use Indian Popular Meme Templates like: \n\n1. 'Aur Batao' \n2. 'Kya Karu Main Itna Cute etc for roasting the resume.";
                 break;
+
+
             }
             case "Job Interviewer": {
                 prompt += " \n\nRoast the resume like a job interviewer, use job interview context and roast the resume in a job interviewer way.";
@@ -133,12 +137,32 @@ export async function POST(request: Request) {
                 break;
             }
             case "Friend": {
-                prompt += " \n\nRoast the resume like a friend, use friendly context and roast the resume in a friendly way.";
-                break;
+                const friends = [
+                    "Best Friend",
+                    "Close Friend",
+                    "Childhood Friend",
+                    "College Friend",
+                    "School Friend",
+                ]
+                //select random friend
+                const randomFriend = friends[Math.floor(Math.random() * friends.length)];
+                prompt += " \n\nRoast the resume like a friend " + randomFriend + ", use friend context and roast the resume in a friend way.";
+
             }
             case "Family Member": {
-                prompt += " \n\nRoast the resume like a family member, use family context and roast the resume in a family member way.";
-                break;
+                const familyMembers = [
+                    "Father",
+                    "Mother",
+                    "Sister",
+                    "Brother",
+                    "Uncle",
+                    "Aunt",
+                    "Grandfather",
+                    "Grandmother",
+                ]
+                //select random family member
+                const randomFamilyMember = familyMembers[Math.floor(Math.random() * familyMembers.length)];
+                prompt += " \n\nRoast the resume like a family member " + randomFamilyMember + ", use family member context and roast the resume in a family member way.";
             }
             case "Ashneer Grover": {
                 prompt += " \n\nRoast the resume like a Ashneer Grover, use Ashneer Grover context and roast the resume in a Ashneer Grover way.";
@@ -153,12 +177,28 @@ export async function POST(request: Request) {
                 break;
             }
             case "Girlfriend": {
-                prompt += " \n\nRoast the resume like a girlfriend, use girlfriend context and roast the resume in a girlfriend way.";
-                break;
+                const girlfriend = [
+                    "Girlfriend",
+                    "Ex-Girlfriend",
+                    "Crush",
+
+                ]
+                //select random girlfriend
+                const randomGirlfriend = girlfriend[Math.floor(Math.random() * girlfriend.length)];
+                prompt += " \n\nRoast the resume like a " + randomGirlfriend + ", use girlfriend context and roast the resume in a girlfriend way.";
+
             }
             case "Boyfriend": {
-                prompt += " \n\nRoast the resume like a boyfriend, use boyfriend context and roast the resume in a boyfriend way.";
-                break;
+                const boyfriend = [
+                    "Boyfriend",
+                    "Ex-Boyfriend",
+                    "Crush",
+
+                ]
+                //select random boyfriend
+                const randomBoyfriend = boyfriend[Math.floor(Math.random() * boyfriend.length)];
+                prompt += " \n\nRoast the resume like a " + randomBoyfriend + ", use boyfriend context and roast the resume in a boyfriend way.";
+
             }
             default: {
 
