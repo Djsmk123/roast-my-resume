@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FaGithub } from 'react-icons/fa';
 import { ClipLoader } from "react-spinners";
 import { Analytics } from "@vercel/analytics/react";
+import ReactMarkdown from "react-markdown";
 
 enum RoastLevel {
   soft = "Soft-hearted",
@@ -39,7 +40,8 @@ const Typewriter: React.FC<{ text: string }> = ({ text }) => {
     }
   }, [currentIndex, text]);
 
-  return <span>{displayText}</span>;
+  return <ReactMarkdown>{displayText}</ReactMarkdown>;
+
 };
 
 const AnimatedCounter: React.FC<{ end: number }> = ({ end }) => {
