@@ -2,6 +2,7 @@ import roastRequestSchema from "../../models/roast_request_model";
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
 import PDFParser from 'pdf2json';
+import resumeRoastCollection from "../../db/db";
 export const revalidate = 0; //revalidate api every 1 second
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
@@ -190,7 +191,7 @@ export async function POST(request: Request) {
             resumeText = await parsePDF(buffer);
 
         }
-        return await ResponseHandler(prompt, resumeText);
+        return await ResponseHandler(prompt, resumeText, roastTone);
     } catch (e) {
         console.error(e);
         return new Response(JSON.stringify({ message: "Internal Server Error", error: e }), {
@@ -214,7 +215,7 @@ async function parsePDF(buffer: Buffer): Promise<string> {
     });
 }
 
-async function ResponseHandler(prompt: string, resumeText: string): Promise<Response> {
+async function ResponseHandler(prompt: string, resumeText: string, toneLevel: String): Promise<Response> {
 
     const content = [
         { role: "model", parts: [{ text: prompt }] },
@@ -223,6 +224,12 @@ async function ResponseHandler(prompt: string, resumeText: string): Promise<Resp
     const result = await model.generateContent({
         contents: content,
         safetySettings: safetySettings,
+    });
+    // Save the roast to the database, do not store resume text for privacy reasons
+    await resumeRoastCollection.add({
+        roastText: result.response.text(),
+        roastLevel: toneLevel,
+        createdAt: new Date(),
     });
 
 

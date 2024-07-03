@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { FaGithub } from 'react-icons/fa';
-
 import { ClipLoader } from "react-spinners";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -43,8 +42,25 @@ const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   return <span>{displayText}</span>;
 };
 
+const AnimatedCounter: React.FC<{ end: number }> = ({ end }) => {
+  const [count, setCount] = useState(0);
 
+  useEffect(() => {
+    let start = 0;
+    const duration = 2000; // 2 seconds duration
+    const increment = end / (duration / 20); // Calculate increment based on duration
 
+    const counter = setInterval(() => {
+      start += increment;
+      setCount(Math.min(end, Math.round(start))); // Ensure it does not exceed end value
+      if (start >= end) clearInterval(counter);
+    }, 20);
+
+    return () => clearInterval(counter);
+  }, [end]);
+
+  return <span>{count.toLocaleString()}</span>; // Format number with commas
+};
 
 export default function Home() {
   const [resumeText, setResumeText] = useState("");
@@ -52,6 +68,7 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [roastLevel, setRoastLevel] = useState("dark");
   const [roastText, setRoastText] = useState("");
+  const [roastCount, setRoastCount] = useState(0);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -65,6 +82,19 @@ export default function Home() {
   const handleRoastLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRoastLevel(e.target.value);
   };
+
+  useEffect(() => {
+    fetch("/api/roastCount")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("An error occurred while fetching roast count");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setRoastCount(data.roastCount);
+      });
+  }, []);
 
   const handleSubmit = async () => {
     if (roastStatus === RoastStatus.loading) {
@@ -94,7 +124,6 @@ export default function Home() {
       formData.append("textBasedResume", resumeText);
     }
     setRoastStatus(RoastStatus.loading);
-    //fake fetch
 
     await fetch("/api/roast", {
       method: "POST",
@@ -116,16 +145,17 @@ export default function Home() {
       })
       .then((data) => {
         console.log(data);
-
         setRoastStatus(RoastStatus.success);
         setRoastText(data.message);
         alert("Roast generated successfully!");
+
+        // Update roast count
+        setRoastCount(prevCount => prevCount + 1);
       })
       .catch((error) => {
         setRoastStatus(RoastStatus.error);
         alert("An error occurred. Please try again later.");
       });
-
   };
 
   return (
@@ -139,7 +169,10 @@ export default function Home() {
         </div>
 
         <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">Roast My  Resume</h2>
+          <h2 className="mb-3 text-2xl font-semibold">Roast My Resume</h2>
+          <div className="mb-4">
+            <p className="text-sm font-medium">Total Roasts: <AnimatedCounter end={roastCount} /></p>
+          </div>
           {roastStatus !== RoastStatus.success && (
             <div>
               <div className="mb-4">
@@ -204,10 +237,8 @@ export default function Home() {
           )}
           <div className="mb-4">
             <button
-
               onClick={handleSubmit}
               className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 flex items-center justify-center"
-
               style={{
                 width: "20%", // Set width to 50%
                 margin: "0 auto", // Center align horizontally
@@ -221,33 +252,21 @@ export default function Home() {
                   "Roast Now"
               )}
             </button>
-
           </div>
-
           <div className="mt-8 text-center text-gray-400 text-sm " style={{
-
             alignItems: "center",
             justifyContent: "center",
             display: "flex",
           }}>
-
-
-
-
             <a href="https://github.com/Djsmk123/roast-my-resume" target="_blank" rel="noopener noreferrer" className="ml-2">
               <FaGithub size={20} className="text-gray-400 hover:text-gray-600" />
             </a>
-
             <p className="mt-4" style={{
               paddingBottom: "15px",
               paddingLeft: "10px",
             }}>Made with ❤️ by <a href="">smkwinner</a></p>
           </div>
-
-
-
         </div>
-
       </div>
     </main>
   );
