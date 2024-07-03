@@ -20,6 +20,26 @@ enum RoastStatus {
   initial = "Initial",
 }
 
+enum RoleType {
+  memer = "Memer",
+  jobInterviewer = "Job Interviewer",
+  standupComedian = "Standup Comedian",
+  hr = "HR",
+  friend = "Friend",
+  familyMember = "Family Member",
+  boss = "Boss",
+  teacher = "Teacher",
+  enemy = "Enemy",
+  girlfriend = "Girlfriend",
+  boyfriend = "Boyfriend",
+}
+
+enum Languages {
+  english = "English",
+  hindi = "Hindi",
+  bothHindiAndEnglish = "Both Hindi and English",
+}
+
 const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -69,6 +89,8 @@ export default function Home() {
   const [roastStatus, setRoastStatus] = useState(RoastStatus.initial);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [roastLevel, setRoastLevel] = useState("dark");
+  const [roleType, setRoleType] = useState("friend");
+  const [language, setLanguage] = useState("english");
   const [roastText, setRoastText] = useState("");
   const [roastCount, setRoastCount] = useState(0);
 
@@ -83,6 +105,14 @@ export default function Home() {
 
   const handleRoastLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRoastLevel(e.target.value);
+  };
+
+  const handleRoleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRoleType(e.target.value);
+  };
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value);
   };
 
   useEffect(() => {
@@ -105,6 +135,7 @@ export default function Home() {
   }, []);
 
   const handleSubmit = async () => {
+    // Prevent multiple requests
     if (roastStatus === RoastStatus.loading) {
       return;
     }
@@ -116,6 +147,14 @@ export default function Home() {
       alert("Please select a roast level");
       return;
     }
+    if (roleType === "") {
+      alert("Please select a role type");
+      return;
+    }
+    if (language === "") {
+      alert("Please select a language");
+      return;
+    }
 
     if (!resumeText && !selectedFile) {
       alert("Please provide a file or resume text");
@@ -125,6 +164,10 @@ export default function Home() {
     const formData = new FormData();
     const roastIndex = Object.keys(RoastLevel).indexOf(roastLevel);
     formData.append("roastLevel", roastIndex.toString());
+    const roleIndex = Object.keys(RoleType).indexOf(roleType);
+    formData.append("role", roleIndex.toString());
+    const languageIndex = Object.keys(Languages).indexOf(language);
+    formData.append("language", languageIndex.toString());
     if (selectedFile) {
       formData.append("file", selectedFile);
     }
@@ -227,6 +270,42 @@ export default function Home() {
                 >
                   <option value="">Select Roast Level</option>
                   {Object.entries(RoastLevel).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="roleType" className="block mb-2 text-sm font-medium">
+                  Role Type
+                </label>
+                <select
+                  id="roleType"
+                  className="w-full py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-white"
+                  value={roleType}
+                  onChange={handleRoleTypeChange}
+                >
+                  <option value="">Select Role Type</option>
+                  {Object.entries(RoleType).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="language" className="block mb-2 text-sm font-medium">
+                  Language
+                </label>
+                <select
+                  id="language"
+                  className="w-full py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-white"
+                  value={language}
+                  onChange={handleLanguageChange}
+                >
+                  <option value="">Select Language</option>
+                  {Object.entries(Languages).map(([key, value]) => (
                     <option key={key} value={key}>
                       {value}
                     </option>

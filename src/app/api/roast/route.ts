@@ -2,7 +2,7 @@ import roastRequestSchema from "../../models/roast_request_model";
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 
 import PDFParser from 'pdf2json';
-import resumeRoastCollection from "../../db/db";
+import firebase from "../../db/db";
 export const revalidate = 0; //revalidate api every 1 second
 export const dynamic = 'force-dynamic';
 
@@ -19,112 +19,36 @@ enum tones {
     "vulgar",
 
 }
+enum roles {
+    "Memer",
+    "Job Interviewer",
+    "Standup Comedian",
+    "HR",
+    "Friend",
+    "Family Member",
+    "Ashneer Grover",
+    "Teacher",
+    "Enemy",
+    "Girlfriend",
+    "Boyfriend",
+}
+enum languages {
+    "English",
+    "Hindi",
+    "Both Hindi and English",
+}
 const safetySettings = [{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE, }, { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE, }, { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE, }, { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE, },];
+let words = [
+    ""
+];
+
+async function loadWordsFromRemoteConfig() {
+    const remoteConfig = await firebase.remoteConfig.getTemplate();
+    var templateStr = JSON.stringify(remoteConfig);
+    words = JSON.parse(templateStr).parameters.words.defaultValue.value;;
 
 
-const words = [
-    "BC",
-    "MC",
-    "Chutiya",
-    "Bhosdike",
-    "Madarchod",
-    "Behenchod",
-    "Gandu",
-    "Haramkhor",
-    "Saala",
-    "Randi",
-    "Lund",
-    "Lauda",
-    "Lavda",
-    "Kutta",
-    "Kaminey",
-    "Chut",
-    "Chutmarika",
-    "Choot",
-    "Gaandu",
-    "Chodu",
-    "Jhaant",
-    "Jhantu",
-    "Bhadwa",
-    "Bhadwe",
-    "Bhadwi",
-    "Chutke",
-    "Chutiyapa",
-    "Bhen ke lode",
-    "Gand",
-    "Haramzada",
-    "Haramzadi",
-    "Lodu",
-    "Loda",
-    "Randi ka baccha",
-    "Tatti",
-    "Lundtop",
-    "Gandmasti",
-    "Bhen di takke",
-    "Lodu ke baal",
-    "Bhosri",
-    "Bhosda",
-    "Chod",
-    "Gandfat",
-    "Maa ke lode",
-    "Randi ki aulaad",
-    "Bhosadike",
-    "Gand mara",
-    "Behn di",
-    "Lund ke baal",
-    "Chutiya ke",
-    "Tere maa ki",
-    "Bhen ka loda",
-    "Bhadwe ki",
-    "Madarchod ke",
-    "Behen di lode",
-    "Chut ke baal",
-    "Gand ke",
-    "Chut ke",
-    "Behen ke lode",
-    "Bhosdike ke",
-    "Bhosad ke",
-    "Gand me",
-    "Lund ke",
-    "Maa ki chut",
-    "Chut ke lode",
-    "Gand ke baal",
-    "Chodu ke",
-    "Gandu ke",
-    "Haramzade ke",
-    "Haramzadi ke",
-    "Lodu ke",
-    "Loda ke",
-    "Randi ke",
-    "Randi ki chut",
-    "Tatti ke",
-    "Lundtop ke",
-    "Gandmasti ke",
-    "Bhen di takke ke",
-    "Lodu ke baal ke",
-    "Bhosdiwale",
-    "Gandfatt",
-    "Madarchod ki",
-    "Behen di chut",
-    "Maa di chut",
-    "Bhosdike lode",
-    "Chodu ki",
-    "Gandu ki",
-    "Lund ki",
-    "Maa ke lode ke",
-    "Bhen di lode ke",
-    "Chut ki",
-    "Gand ki",
-    "Chutmarika ke",
-    "Jhantu ke",
-    "Jhaant ke",
-    "Bhadwe ke",
-    "Randi ki maa",
-    "Gandfat ke",
-    "Lund ke lode",
-    "Bhosdike ki"
-]
-
+}
 
 
 export async function POST(request: Request) {
@@ -140,6 +64,7 @@ export async function POST(request: Request) {
             }
             return accu;
         }, {});
+
 
         const { success, error, data } = roastRequestSchema.safeParse(fromEntries);
         if (!success) {
@@ -163,18 +88,95 @@ export async function POST(request: Request) {
         }
 
         const roastLevel = parseInt(roastRequest.roastLevel);
+        const role = parseInt(roastRequest.role);
+        const language = parseInt(roastRequest.language);
 
 
+
+        await loadWordsFromRemoteConfig();
         //parse string to int 
         const roastTone = tones[roastLevel];
-        var prompt = `You are a witty assistant asked to create roast based on tone ` + roastTone + `.`;
-        if (roastTone == "vulgar") {
-            prompt += " \n\nPlease using the following words in the roast for impact: " + words.join(", ") + ". and add vulgarity to the roast hindi and english both.";
-        }
-        prompt += " Provide only roast text content, not any helper texts.";
+        const roleType = roles[role];
+        const languageType = languages[language];
+        var prompt = `You are a witty assistant asked to create roast based on tone  ` + roastTone + `. use indian context for roasting`;
+        switch (roleType) {
+            case "Memer": {
+                prompt += " \n\nRoast the resume like a memer, use memes and roast the resume in a memer way.";
+                break;
+            }
+            case "Job Interviewer": {
+                prompt += " \n\nRoast the resume like a job interviewer, use job interview context and roast the resume in a job interviewer way.";
+                break;
+            }
+            case "Standup Comedian": {
+                const standUpComedians = [
+                    "Zakir Khan",
+                    "Kenny Sebastian",
+                    "Biswa Kalyan Rath",
+                    "Kanan Gill",
+                    "Rahul Subramanian",
+                    "Bassi",
+                    "Abhishek Upmanyu",
+                    //english standup comedians
+                    "George Carlin",
+                    "Dave Chappelle",
+                    "Louis C.K.",
+                    "Richard Pryor",
+                ]
+                //select random standup comedian
+                const randomStandUpComedian = standUpComedians[Math.floor(Math.random() * standUpComedians.length)];
 
+                prompt += " \n\nRoast the resume like a standup comedian " + randomStandUpComedian + ", use standup comedian context and roast the resume in a standup comedian way.";
+            }
+            case "HR": {
+                prompt += " \n\nRoast the resume like a HR, use HR context and roast the resume in a HR way.";
+                break;
+            }
+            case "Friend": {
+                prompt += " \n\nRoast the resume like a friend, use friendly context and roast the resume in a friendly way.";
+                break;
+            }
+            case "Family Member": {
+                prompt += " \n\nRoast the resume like a family member, use family context and roast the resume in a family member way.";
+                break;
+            }
+            case "Ashneer Grover": {
+                prompt += " \n\nRoast the resume like a Ashneer Grover, use Ashneer Grover context and roast the resume in a Ashneer Grover way.";
+                break;
+            }
+            case "Teacher": {
+                prompt += " \n\nRoast the resume like a teacher, use teacher context and roast the resume in a teacher way.";
+                break;
+            }
+            case "Enemy": {
+                prompt += " \n\nRoast the resume like a enemy, use enemy context and roast the resume in a enemy way.";
+                break;
+            }
+            case "Girlfriend": {
+                prompt += " \n\nRoast the resume like a girlfriend, use girlfriend context and roast the resume in a girlfriend way.";
+                break;
+            }
+            case "Boyfriend": {
+                prompt += " \n\nRoast the resume like a boyfriend, use boyfriend context and roast the resume in a boyfriend way.";
+                break;
+            }
+            default: {
+
+                break;
+            }
+
+        }
+        if (roastTone == "vulgar") {
+            prompt += " \n\nPlease using the following words in the roast for impact: " + words + ". and add vulgarity to the roast hindi and english both.";
+        }
+        if (roastTone == "dark") {
+            prompt += "Keep it for dark humor, and add some dark humor to the roast.";
+        }
+        prompt += " Provide only roast text content, not any helper texts and use the following language: " + languageType + ".";
 
         console.log(prompt);
+
+
 
         let resumeText = roastRequest.textBasedResume?.toString() ?? '';
         if (resumeText === '') {
@@ -226,18 +228,26 @@ async function ResponseHandler(prompt: string, resumeText: string, toneLevel: St
         contents: content,
         safetySettings: safetySettings,
     });
+
     // Save the roast to the database, do not store resume text for privacy reasons
-    await resumeRoastCollection.add({
-        roastText: result.response.text(),
-        roastLevel: toneLevel,
-        createdAt: new Date(),
-    });
+    //do not store if it is on local machine
+    const env = process.env.NODE_ENV
+    console.log(env);
+    if (env != "development") {
+        await firebase.resumeRoastCollection.add({
+            roastText: result.response.text(),
+            roastLevel: toneLevel,
+            createdAt: new Date(),
+        });
+    }
+
+
+
 
 
 
 
     return new Response(JSON.stringify({
-
         message: result.response.text(),
     }), {
         status: 200,
