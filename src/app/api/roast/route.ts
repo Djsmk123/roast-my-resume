@@ -4,6 +4,7 @@ import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/ge
 import PDFParser from 'pdf2json';
 import resumeRoastCollection from "../../db/db";
 export const revalidate = 0; //revalidate api every 1 second
+export const dynamic = 'force-dynamic';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const configuration = new GoogleGenerativeAI(GEMINI_API_KEY);

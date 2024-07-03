@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = 'force-dynamic';
 
 // To handle a GET request to /api
 export async function GET(request: any) {

@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import resumeRoastCollection from "../../db/db";
 // To handle a GET request to /api
+export const revalidate = 0; //revalidate api every 1 second
+export const dynamic = 'force-dynamic';
 export async function GET(request: any) {
     //count the number of documents in the collection
     const snapshot = await resumeRoastCollection.get();
