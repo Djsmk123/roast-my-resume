@@ -4,41 +4,11 @@ import { FaGithub } from 'react-icons/fa';
 import { ClipLoader } from "react-spinners";
 import { Analytics } from "@vercel/analytics/react";
 import ReactMarkdown from "react-markdown";
+import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
+import { submitRoastRequest, getRoastCount } from "../services/roast_service";
+import DownloadButton from "../components/download_button";
 
-enum RoastLevel {
-  soft = "Soft-hearted",
-  hard = "Hard-hearted",
-  light = "Light",
-  dark = "Dark",
-  vulgar = "Vulgar",
-}
 
-enum RoastStatus {
-  success = "Success",
-  error = "Error",
-  loading = "Loading",
-  initial = "Initial",
-}
-
-enum RoleType {
-  memer = "Memer",
-  jobInterviewer = "Job Interviewer",
-  standupComedian = "Standup Comedian",
-  hr = "HR",
-  friend = "Friend",
-  familyMember = "Family Member",
-  boss = "Boss",
-  teacher = "Teacher",
-  enemy = "Enemy",
-  girlfriend = "Girlfriend",
-  boyfriend = "Boyfriend",
-}
-
-enum Languages {
-  english = "English",
-  hindi = "Hindi",
-  bothHindiAndEnglish = "Both Hindi and English",
-}
 
 const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
@@ -91,8 +61,11 @@ export default function Home() {
   const [roastLevel, setRoastLevel] = useState("dark");
   const [roleType, setRoleType] = useState("friend");
   const [language, setLanguage] = useState("english");
-  const [roastText, setRoastText] = useState("");
+  const [roastText, setRoastText] = useState(
+    ""
+  );
   const [roastCount, setRoastCount] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -116,110 +89,21 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const cachedRoastCount = localStorage.getItem("roastCount");
-    const cachedTimestamp = localStorage.getItem("roastCountTimestamp");
-
-    if (cachedRoastCount && cachedTimestamp) {
-      const now = Date.now();
-      const timestamp = parseInt(cachedTimestamp, 10);
-
-      // Check if cached data is older than 1 hour
-      if (now - timestamp < 3600000) {
-        setRoastCount(parseInt(cachedRoastCount, 10));
-        return;
-      }
-    }
-
-    fetch("/api/roastCount")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("An error occurred while fetching roast count");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setRoastCount(data.roastCount);
-        localStorage.setItem("roastCount", data.roastCount);
-        localStorage.setItem("roastCountTimestamp", Date.now().toString());
-      });
+    return getRoastCount((count: any) => setRoastCount(count));
   }, []);
 
   const handleSubmit = async () => {
-    // Prevent multiple requests
-    if (roastStatus === RoastStatus.loading) {
-      return;
-    }
-    if (roastStatus === RoastStatus.success) {
-      setRoastStatus(RoastStatus.initial);
-      return;
-    }
-    if (roastLevel === "") {
-      alert("Please select a roast level");
-      return;
-    }
-    if (roleType === "") {
-      alert("Please select a role type");
-      return;
-    }
-    if (language === "") {
-      alert("Please select a language");
-      return;
-    }
-
-    if (!resumeText && !selectedFile) {
-      alert("Please provide a file or resume text");
-      return;
-    }
-
-    const formData = new FormData();
-    const roastIndex = Object.keys(RoastLevel).indexOf(roastLevel);
-    formData.append("roastLevel", roastIndex.toString());
-    const roleIndex = Object.keys(RoleType).indexOf(roleType);
-    formData.append("role", roleIndex.toString());
-    const languageIndex = Object.keys(Languages).indexOf(language);
-    formData.append("language", languageIndex.toString());
-    if (selectedFile) {
-      formData.append("file", selectedFile);
-    }
-    if (resumeText) {
-      formData.append("textBasedResume", resumeText);
-    }
-    setRoastStatus(RoastStatus.loading);
-
-    await fetch("/api/roast", {
-      method: "POST",
-      body: formData,
-      headers: {
-        Accept: "application/json",
-      },
-      cache: 'no-store',
-    })
-      .then(async (response) => {
-        var data = await response.json();
-        if (response.ok) {
-          return data;
-        }
-
-        throw new Error(data.message);
-      })
-      .then((data) => {
-        console.log(data);
-        setRoastStatus(RoastStatus.success);
-        setRoastText(data.message);
-        alert("Roast generated successfully!");
-
-        // Update roast count
-        setRoastCount(prevCount => {
-          const newCount = prevCount + 1;
-          localStorage.setItem("roastCount", newCount.toString());
-          localStorage.setItem("roastCountTimestamp", Date.now().toString());
-          return newCount;
-        });
-      })
-      .catch((error) => {
-        setRoastStatus(RoastStatus.error);
-        alert("An error occurred. Please try again later.");
-      });
+    submitRoastRequest(
+      roastLevel,
+      roleType,
+      roastStatus,
+      setRoastStatus,
+      setRoastText,
+      () => roastCount,
+      resumeText,
+      selectedFile,
+      language,
+    );
   };
 
   return (
@@ -335,6 +219,7 @@ export default function Home() {
               <Typewriter text={roastText} />
             </div>
           )}
+
           <div className="mb-4">
             <button
               onClick={handleSubmit}
@@ -353,6 +238,14 @@ export default function Home() {
               )}
             </button>
           </div>
+
+          {roastStatus === RoastStatus.success && (
+            DownloadButton(roastText,
+              isDialogOpen,
+              setIsDialogOpen
+            )
+
+          )}
           <div className="mt-8 text-center text-gray-400 text-sm " style={{
             alignItems: "center",
             justifyContent: "center",
