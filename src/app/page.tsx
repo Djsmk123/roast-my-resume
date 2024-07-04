@@ -116,13 +116,21 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetch("/api/roastCount",
-      {
-        next: {
-          revalidate: 0,
-        }
+    const cachedRoastCount = localStorage.getItem("roastCount");
+    const cachedTimestamp = localStorage.getItem("roastCountTimestamp");
+
+    if (cachedRoastCount && cachedTimestamp) {
+      const now = Date.now();
+      const timestamp = parseInt(cachedTimestamp, 10);
+
+      // Check if cached data is older than 1 hour
+      if (now - timestamp < 3600000) {
+        setRoastCount(parseInt(cachedRoastCount, 10));
+        return;
       }
-    )
+    }
+
+    fetch("/api/roastCount")
       .then((response) => {
         if (!response.ok) {
           throw new Error("An error occurred while fetching roast count");
@@ -131,6 +139,8 @@ export default function Home() {
       })
       .then((data) => {
         setRoastCount(data.roastCount);
+        localStorage.setItem("roastCount", data.roastCount);
+        localStorage.setItem("roastCountTimestamp", Date.now().toString());
       });
   }, []);
 
@@ -199,7 +209,12 @@ export default function Home() {
         alert("Roast generated successfully!");
 
         // Update roast count
-        setRoastCount(prevCount => prevCount + 1);
+        setRoastCount(prevCount => {
+          const newCount = prevCount + 1;
+          localStorage.setItem("roastCount", newCount.toString());
+          localStorage.setItem("roastCountTimestamp", Date.now().toString());
+          return newCount;
+        });
       })
       .catch((error) => {
         setRoastStatus(RoastStatus.error);
