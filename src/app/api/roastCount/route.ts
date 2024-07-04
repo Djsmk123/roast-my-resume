@@ -7,6 +7,6 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: any) {
     //count the number of documents in the collection
     const snapshot = await firebase.resumeRoastCollection.get();
-    const roastCount = snapshot.size + 500//initial count of 500 roast,you can change it to 0 if you want to start from 0;
+    const roastCount = snapshot.size + 800//initial count of 500 roast,you can change it to 0 if you want to start from 0;
     return NextResponse.json({ roastCount }, { status: 200 });
 }
