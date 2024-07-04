@@ -48,8 +48,8 @@ let words: string[] = [];
 
 async function loadWordsFromRemoteConfig() {
     const remoteConfig = await firebase.remoteConfig.getTemplate();
-    const templateStr = JSON.stringify(remoteConfig);
-    words = JSON.parse(templateStr).parameters.words.defaultValue.value;
+    var templateStr = JSON.stringify(remoteConfig);
+    words = JSON.parse(templateStr).parameters.words.defaultValue.value;;
 }
 
 export async function POST(request: Request) {
@@ -181,8 +181,8 @@ export async function POST(request: Request) {
                 break;
         }
 
-        if (roastTone === Tones.Vulgar) {
-            prompt += `\n\nPlease use the following words in the roast for impact: ${words.join(", ")}. Add vulgarity to the roast in both Hindi and English.`;
+         if (roastTone == "vulgar") {
+            prompt += " \n\nPlease using the following words in the roast for impact: " + words + ". and add vulgarity to the roast hindi and english both.";
         }
 
         if (roastTone === Tones.Dark) {
