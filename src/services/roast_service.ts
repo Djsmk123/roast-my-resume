@@ -1,4 +1,5 @@
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
+
 async function submitRoastRequest(
     roastLevel: string,
     roleType: string,
@@ -36,6 +37,7 @@ async function submitRoastRequest(
         alert("Please provide a file or resume text");
         return;
     }
+    const BASEURL = process.env.Backend_URL;
 
     const formData = new FormData();
     const roastIndex = Object.keys(RoastLevel).indexOf(roastLevel);
@@ -52,14 +54,16 @@ async function submitRoastRequest(
     }
     setRoastStatus(RoastStatus.loading);
 
-    await fetch("/api/roast", {
-        method: "POST",
-        body: formData,
-        headers: {
-            Accept: "application/json",
-        },
-        cache: 'no-store',
-    })
+    await fetch(
+        `${BASEURL}/roast`,
+        {
+            method: "POST",
+            body: formData,
+            headers: {
+                Accept: "application/json",
+            },
+            cache: 'no-store',
+        })
         .then(async (response) => {
             var data = await response.json();
             if (response.ok) {
@@ -106,8 +110,9 @@ function getRoastCount(
             return;
         }
     }
+    const BASEURL = process.env.Backend_URL;
 
-    fetch("/api/roastCount")
+    fetch(`${BASEURL}/roastCount`,)
         .then((response) => {
             if (!response.ok) {
                 throw new Error("An error occurred while fetching roast count");
@@ -116,7 +121,7 @@ function getRoastCount(
         })
         .then((data) => {
             setRoastCount(data.roastCount);
-            localStorage.setItem("roastCount", data.roastCount);
+            localStorage.setItem("roastCount", data['message'].toString());
             localStorage.setItem("roastCountTimestamp", Date.now().toString());
         });
 }

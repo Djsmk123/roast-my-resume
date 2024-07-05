@@ -6,9 +6,9 @@ import { Analytics } from "@vercel/analytics/react";
 import ReactMarkdown from "react-markdown";
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
 import { submitRoastRequest, getRoastCount } from "../services/roast_service";
-import DownloadButton from "../components/download_button";
 
-
+const BASEURL = process.env.Backend_URL;
+console.log("Base URL: ", BASEURL);
 
 const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
@@ -238,14 +238,7 @@ export default function Home() {
               )}
             </button>
           </div>
-          {roastStatus === RoastStatus.success && (
-            <DownloadButton
-              roastText={roastText}
 
-
-            />
-
-          )}
 
           <div className="mt-8 text-center text-gray-400 text-sm " style={{
             alignItems: "center",
