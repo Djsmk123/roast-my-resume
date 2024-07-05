@@ -1,30 +1,20 @@
+"use client";
 import { FaDownload } from "react-icons/fa";
-import { useRef, useState, } from "react";
-import {
-    exportComponentAsJPEG,
-
-} from "react-component-export-image";
+import { useRef, useState, useEffect } from "react";
+import { exportComponentAsJPEG } from "react-component-export-image";
 import React from "react";
 
-export default function DownloadButton(
-    roastText: string,
-    isDialogOpen: boolean,
-    setIsDialogOpen: (value: boolean) => void
-) {
-
-
+export default function DownloadButton(props: DownloadButtonProps) {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const { roastText } = props;
 
     return (
         <div>
             <div className="mb-4">
                 <button
                     onClick={() => {
-                        //open the dialog
+                        // Open the dialog
                         setIsDialogOpen(true);
-
-                        // Handle save logic here
-
-
                     }}
                     className="w-full px-4 py-2 text-white bg-transparent rounded-md hover:bg-tranparent flex items-center justify-center"
                     style={{
@@ -36,51 +26,49 @@ export default function DownloadButton(
                     Save Roast
                 </button>
             </div>
-            {isDialogOpen && <DownloadButtonDialog roastText={roastText} onCloseDialog={function (): void {
-                setIsDialogOpen(false);
-            }} />}
-
-
+            {isDialogOpen && (
+                <DownloadButtonDialog roastText={roastText} />
+            )}
         </div>
     );
 }
 
-
-
 interface DownloadButtonProps {
     roastText: string;
 }
 
-interface DownloadButtonProps {
-    roastText: string;
-    onCloseDialog: () => void;
-}
+const DownloadButtonDialog: React.FC<DownloadButtonProps> = ({ roastText }) => {
+    const componentRef = useRef<HTMLDivElement>(null);
+    const [isDownloading, setIsDownloading] = useState(false); // Use isDownloading for state
 
-const DownloadButtonDialog: React.FC<DownloadButtonProps> = ({ roastText, onCloseDialog }) => {
+    const [isClient, setIsClient] = useState(false);
 
-    const componentRef = useRef<HTMLDivElement | null>(null);
-    const [isDownloadButtonDisabled, setIsDownloadButtonDisabled] = useState(false);
+    useEffect(() => {
+        // Check if the component is being rendered on the client side
+        setIsClient(true);
+    }, []);
 
     const handleSave = async () => {
-        setIsDownloadButtonDisabled(true);
+        setIsDownloading(true);
 
-        exportComponentAsJPEG(componentRef).then(() => {
-            //fake delay
-            setTimeout(() => {
-                setIsDownloadButtonDisabled(false);
-                onCloseDialog();
-            }, 2000);
-
-        });
-
+        if (componentRef.current) {
+            await exportComponentAsJPEG(componentRef).then(() => {
+                // Download complete (handle as needed)
+                setIsDownloading(false); // Set state to false after download finishes
+            });
+        }
     };
+
+    if (!isClient) {
+        return null;
+    }
 
     return (
         <React.Fragment>
             <div
                 ref={componentRef}
                 className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-80 z-50"
-                style={{ flexDirection: "column-reverse" }} // Align from bottom
+                style={{ flexDirection: 'column-reverse' }} // Align from bottom
             >
                 <div className="relative w-full max-w-md p-8 bg-gradient-to-br from-blue-500 to-red-700 rounded-lg shadow-lg">
                     <div className="absolute bottom-0 right-0 m-4">
@@ -88,22 +76,22 @@ const DownloadButtonDialog: React.FC<DownloadButtonProps> = ({ roastText, onClos
                             href="https://roast-my-resume.vercel.app/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            style={{ fontSize: "0.5rem" }}
+                            style={{ fontSize: '0.5rem' }}
                             className="text-white hover:text-gray-200"
                         >
                             *Powered by https://roast-my-resume.vercel.app/
                         </a>
                     </div>
                     <div className="text-center">
-                        <p className="text-lg font-semibold text-white mb-6">Your Roast </p>
+                        <p className="text-lg font-semibold text-white mb-6">Your Roast</p>
                         <p className="text-white">{roastText}</p>
                     </div>
-                    {!isDownloadButtonDisabled && (
+                    {!isDownloading && (
                         <div className="mt-6">
                             <button
                                 onClick={handleSave}
                                 style={{
-                                    marginBottom: "0.5rem",
+                                    marginBottom: '0.5rem',
                                 }}
                                 className="w-full px-4 py-2 text-white bg-transparent rounded-md hover:bg-transparent flex items-center justify-center border border-white"
                             >
@@ -112,11 +100,11 @@ const DownloadButtonDialog: React.FC<DownloadButtonProps> = ({ roastText, onClos
                             </button>
                         </div>
                     )}
+                    {isDownloading && ( // Show a message while downloading
+                        <p className="text-white mt-4">Download in progress...</p>
+                    )}
                 </div>
             </div>
         </React.Fragment>
     );
 };
-
-
-

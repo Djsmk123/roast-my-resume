@@ -12,14 +12,15 @@ import DownloadButton from "../components/download_button";
 
 const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(typeof window !== 'undefined' ? 0 : null);
+
 
   // Simulate typewriter effect
   useEffect(() => {
-    if (currentIndex < text.length) {
+    if (currentIndex !== null && currentIndex < text.length) {
       const interval = setInterval(() => {
         setDisplayText((prevText) => prevText + text[currentIndex]);
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        setCurrentIndex((prevIndex) => (prevIndex !== null ? prevIndex + 1 : null));
 
         if (currentIndex === text.length - 1) {
           clearInterval(interval);
@@ -61,11 +62,9 @@ export default function Home() {
   const [roastLevel, setRoastLevel] = useState("dark");
   const [roleType, setRoleType] = useState("friend");
   const [language, setLanguage] = useState("english");
-  const [roastText, setRoastText] = useState(
-    ""
-  );
+  const [roastText, setRoastText] = useState("");
   const [roastCount, setRoastCount] = useState(0);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -87,6 +86,7 @@ export default function Home() {
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value);
   };
+
 
   useEffect(() => {
     return getRoastCount((count: any) => setRoastCount(count));
@@ -238,14 +238,15 @@ export default function Home() {
               )}
             </button>
           </div>
-
           {roastStatus === RoastStatus.success && (
-            DownloadButton(roastText,
-              isDialogOpen,
-              setIsDialogOpen
-            )
+            <DownloadButton
+              roastText={roastText}
+
+
+            />
 
           )}
+
           <div className="mt-8 text-center text-gray-400 text-sm " style={{
             alignItems: "center",
             justifyContent: "center",
