@@ -4,7 +4,7 @@ const nextConfig = {};
 module.exports = {
     experimental: {
         serverActions: true,
-        serverComponentsExternalPackages: ['pdf2json'],
+
 
     },
     async headers() {

@@ -4,32 +4,23 @@ import { FaGithub } from 'react-icons/fa';
 import { ClipLoader } from "react-spinners";
 import { Analytics } from "@vercel/analytics/react";
 import ReactMarkdown from "react-markdown";
+import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
+import { submitRoastRequest, getRoastCount } from "../services/roast_service";
 
-enum RoastLevel {
-  soft = "Soft-hearted",
-  hard = "Hard-hearted",
-  light = "Light",
-  dark = "Dark",
-  vulgar = "Vulgar",
-}
-
-enum RoastStatus {
-  success = "Success",
-  error = "Error",
-  loading = "Loading",
-  initial = "Initial",
-}
+const BASEURL = process.env.Backend_URL;
+console.log("Base URL: ", BASEURL);
 
 const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(typeof window !== 'undefined' ? 0 : null);
+
 
   // Simulate typewriter effect
   useEffect(() => {
-    if (currentIndex < text.length) {
+    if (currentIndex !== null && currentIndex < text.length) {
       const interval = setInterval(() => {
         setDisplayText((prevText) => prevText + text[currentIndex]);
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        setCurrentIndex((prevIndex) => (prevIndex !== null ? prevIndex + 1 : null));
 
         if (currentIndex === text.length - 1) {
           clearInterval(interval);
@@ -69,8 +60,11 @@ export default function Home() {
   const [roastStatus, setRoastStatus] = useState(RoastStatus.initial);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [roastLevel, setRoastLevel] = useState("dark");
+  const [roleType, setRoleType] = useState("friend");
+  const [language, setLanguage] = useState("english");
   const [roastText, setRoastText] = useState("");
   const [roastCount, setRoastCount] = useState(0);
+
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -85,85 +79,31 @@ export default function Home() {
     setRoastLevel(e.target.value);
   };
 
+  const handleRoleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRoleType(e.target.value);
+  };
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value);
+  };
+
+
   useEffect(() => {
-    fetch("/api/roastCount",
-      {
-        next: {
-          revalidate: 0,
-        }
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("An error occurred while fetching roast count");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setRoastCount(data.roastCount);
-      });
+    return getRoastCount((count: any) => setRoastCount(count));
   }, []);
 
   const handleSubmit = async () => {
-    if (roastStatus === RoastStatus.loading) {
-      return;
-    }
-    if (roastStatus === RoastStatus.success) {
-      setRoastStatus(RoastStatus.initial);
-      return;
-    }
-    if (roastLevel === "") {
-      alert("Please select a roast level");
-      return;
-    }
-
-    if (!resumeText && !selectedFile) {
-      alert("Please provide a file or resume text");
-      return;
-    }
-
-    const formData = new FormData();
-    const roastIndex = Object.keys(RoastLevel).indexOf(roastLevel);
-    formData.append("roastLevel", roastIndex.toString());
-    if (selectedFile) {
-      formData.append("file", selectedFile);
-    }
-    if (resumeText) {
-      formData.append("textBasedResume", resumeText);
-    }
-    setRoastStatus(RoastStatus.loading);
-
-    await fetch("/api/roast", {
-      method: "POST",
-      body: formData,
-      headers: {
-        Accept: "application/json",
-      },
-      next: {
-        revalidate: 0,
-      }
-    })
-      .then(async (response) => {
-        var data = await response.json();
-        if (response.ok) {
-          return data;
-        }
-
-        throw new Error(data.message);
-      })
-      .then((data) => {
-        console.log(data);
-        setRoastStatus(RoastStatus.success);
-        setRoastText(data.message);
-        alert("Roast generated successfully!");
-
-        // Update roast count
-        setRoastCount(prevCount => prevCount + 1);
-      })
-      .catch((error) => {
-        setRoastStatus(RoastStatus.error);
-        alert("An error occurred. Please try again later.");
-      });
+    submitRoastRequest(
+      roastLevel,
+      roleType,
+      roastStatus,
+      setRoastStatus,
+      setRoastText,
+      () => roastCount,
+      resumeText,
+      selectedFile,
+      language,
+    );
   };
 
   return (
@@ -233,6 +173,42 @@ export default function Home() {
                   ))}
                 </select>
               </div>
+              <div className="mb-4">
+                <label htmlFor="roleType" className="block mb-2 text-sm font-medium">
+                  Role Type
+                </label>
+                <select
+                  id="roleType"
+                  className="w-full py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-white"
+                  value={roleType}
+                  onChange={handleRoleTypeChange}
+                >
+                  <option value="">Select Role Type</option>
+                  {Object.entries(RoleType).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="language" className="block mb-2 text-sm font-medium">
+                  Language
+                </label>
+                <select
+                  id="language"
+                  className="w-full py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-white"
+                  value={language}
+                  onChange={handleLanguageChange}
+                >
+                  <option value="">Select Language</option>
+                  {Object.entries(Languages).map(([key, value]) => (
+                    <option key={key} value={key}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
           {roastStatus === RoastStatus.success && (
@@ -243,6 +219,7 @@ export default function Home() {
               <Typewriter text={roastText} />
             </div>
           )}
+
           <div className="mb-4">
             <button
               onClick={handleSubmit}
@@ -261,6 +238,8 @@ export default function Home() {
               )}
             </button>
           </div>
+
+
           <div className="mt-8 text-center text-gray-400 text-sm " style={{
             alignItems: "center",
             justifyContent: "center",
