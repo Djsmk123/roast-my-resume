@@ -1,15 +1,16 @@
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
-
+import RoastResponse from "../model/roast_model";
 async function submitRoastRequest(
     roastLevel: string,
     roleType: string,
     roastStatus: RoastStatus,
     setRoastStatus: (status: RoastStatus) => void,
-    setRoastText: (text: string) => void,
+    setRoastResponse: (text: RoastResponse) => void,
     setRoastCount: (count: any) => number,
     resumeText: string,
     selectedFile: File | null,
     language: string,
+    useImage: boolean
 
 ) {
     // Prevent multiple requests
@@ -46,6 +47,7 @@ async function submitRoastRequest(
     formData.append("role", roleIndex.toString());
     const languageIndex = Object.keys(Languages).indexOf(language);
     formData.append("language", languageIndex.toString());
+    formData.append("meme", useImage.toString().toLowerCase());
     if (selectedFile) {
         formData.append("file", selectedFile);
     }
@@ -73,9 +75,22 @@ async function submitRoastRequest(
             throw new Error(data.message);
         })
         .then((data) => {
-            console.log(data);
+            //parse data
+            const roastResponse: RoastResponse = data['data'];
+            if (roastResponse.meme && roastResponse.meme.outputFull.html) {
+                //remove html logo from the page
+                const html = roastResponse?.meme?.outputFull.html;
+                //remove following content from the page 
+                const logoHtmlTobeRemove = "<img src=\"https://res.cloudinary.com/dzkwltgyd/image/upload/v1719301688/canvas-block-production/vol8i5mnu74j1jbulxsv.jpg\" style=\"width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0px; user-select: none; \" alt=\"\" />";
+                const updatedHtml = html?.replace(logoHtmlTobeRemove, "");
+                if (roastResponse?.meme?.outputFull.html &&
+                    updatedHtml) {
+                    roastResponse.meme.outputFull.html = updatedHtml;
+                }
+            }
+
             setRoastStatus(RoastStatus.success);
-            setRoastText(data.message);
+            setRoastResponse(roastResponse);
             alert("Roast generated successfully!");
 
             // Update roast count
@@ -111,6 +126,7 @@ function getRoastCount(
         }
     }
     const BASEURL = process.env.Backend_URL;
+
 
     fetch(`${BASEURL}/roastCount`,)
         .then((response) => {

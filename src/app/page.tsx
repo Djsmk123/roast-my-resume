@@ -6,6 +6,12 @@ import { Analytics } from "@vercel/analytics/react";
 import ReactMarkdown from "react-markdown";
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
 import { submitRoastRequest, getRoastCount } from "../services/roast_service";
+import Switch from '@mui/material/Switch';
+import RoastResponse from "@/model/roast_model";
+
+
+
+
 
 const BASEURL = process.env.Backend_URL;
 console.log("Base URL: ", BASEURL);
@@ -62,8 +68,13 @@ export default function Home() {
   const [roastLevel, setRoastLevel] = useState("dark");
   const [roleType, setRoleType] = useState("friend");
   const [language, setLanguage] = useState("english");
-  const [roastText, setRoastText] = useState("");
   const [roastCount, setRoastCount] = useState(0);
+  const [useImageGenerator, setUseImageGenerator] = useState(false);
+  const [roastResponse, setRoastResponse] = useState<RoastResponse | null>(null);
+
+
+
+
 
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -76,7 +87,12 @@ export default function Home() {
   };
 
   const handleRoastLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRoastLevel(e.target.value);
+    const level = e.target.value;
+    setRoastLevel(level);
+    // Reset image generator when changing roast level
+    if (level === 'vulgar') {
+      setUseImageGenerator(false);
+    }
   };
 
   const handleRoleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -88,8 +104,9 @@ export default function Home() {
   };
 
 
+
   useEffect(() => {
-    return getRoastCount((count: any) => setRoastCount(count));
+    return roastStatus === RoastStatus.initial ? getRoastCount((count: any) => setRoastCount(count)) : () => { };
   }, []);
 
   const handleSubmit = async () => {
@@ -98,13 +115,15 @@ export default function Home() {
       roleType,
       roastStatus,
       setRoastStatus,
-      setRoastText,
+      setRoastResponse as React.Dispatch<React.SetStateAction<RoastResponse | null>>,
       () => roastCount,
       resumeText,
       selectedFile,
       language,
+      useImageGenerator
     );
   };
+
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
@@ -117,10 +136,12 @@ export default function Home() {
         </div>
 
         <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">Roast My Resume</h2>
-          <div className="mb-4">
-            <p className="text-sm font-medium">Total Roasts: <AnimatedCounter end={roastCount} /></p>
-          </div>
+          <h2 className="mb-3 text-2xl font-semibold text-blue-500">Roast My Resume</h2>
+          {roastStatus !== RoastStatus.success && (
+            <div className="mb-4">
+              <p className="text-sm font-medium">Total Roasts: <AnimatedCounter end={roastCount} /></p>
+            </div>
+          )}
           {roastStatus !== RoastStatus.success && (
             <div>
               <div className="mb-4">
@@ -209,16 +230,75 @@ export default function Home() {
                   ))}
                 </select>
               </div>
+              {
+                roastLevel !== 'vulgar' &&
+
+                (
+                  <div>
+                    <div style={{
+                      flexDirection: "row",
+                      display: "flex",
+
+                      alignItems: "center",     // Aligns items along the cross axis (vertical in row)
+                    }}>
+                      <label htmlFor="useImageGenerator" className="block mb-2 text-sm font-medium">
+                        Use Image Generator
+                      </label>
+
+                      <Switch
+                        title="Use Image Generator"
+                        color="primary"
+                        checked={useImageGenerator}
+                        onChange={() => setUseImageGenerator(!useImageGenerator)}
+                      />
+                    </div>
+
+
+                    {useImageGenerator && (
+                      <div className="mb-4 text-yellow-400">
+                        Please note: Response might take some time as we generate your image.
+                      </div>
+                    )}
+
+                  </div>
+                )
+              }
+
             </div>
+
+
+
           )}
           {roastStatus === RoastStatus.success && (
-            <div className="text-center mt-4" style={{
-              padding: "10px",
-              margin: "10px",
-            }}>
-              <Typewriter text={roastText} />
+            <div>
+              <div className="text-center mt-4" style={{
+                padding: "10px",
+                margin: "10px",
+              }}>
+                <Typewriter text={roastResponse?.roast ?? "Roast not found"} />
+              </div>
+              {roastResponse && roastResponse.meme && roastResponse.meme.output && (
+
+                <div
+                  className="flex items-center justify-center"
+                  style={{
+
+
+                    marginBottom: "20px",
+
+                  }}
+
+                  dangerouslySetInnerHTML={{ __html: roastResponse.meme.outputFull.html }}>
+
+
+                </div>
+
+              )}
+
             </div>
           )}
+
+
 
           <div className="mb-4">
             <button
@@ -255,6 +335,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </main >
   );
 }
