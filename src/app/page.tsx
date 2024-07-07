@@ -1,15 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import { FaGithub } from 'react-icons/fa';
+
 import { ClipLoader } from "react-spinners";
 import { Analytics } from "@vercel/analytics/react";
 import ReactMarkdown from "react-markdown";
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
 import { submitRoastRequest, getRoastCount } from "../services/roast_service";
 import Switch from '@mui/material/Switch';
+import ShareMenu from "@/components/share_button";
+
+
 import RoastResponse from "@/model/roast_model";
-
-
+import React from "react";
+import DownloadImageComponent from "@/components/download_image";
 
 
 
@@ -18,16 +22,14 @@ console.log("Base URL: ", BASEURL);
 
 const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(typeof window !== 'undefined' ? 0 : null);
-
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // Simulate typewriter effect
   useEffect(() => {
-    if (currentIndex !== null && currentIndex < text.length) {
+    if (currentIndex < text.length) {
       const interval = setInterval(() => {
         setDisplayText((prevText) => prevText + text[currentIndex]);
-        setCurrentIndex((prevIndex) => (prevIndex !== null ? prevIndex + 1 : null));
-
+        setCurrentIndex((prevIndex) => prevIndex + 1);
         if (currentIndex === text.length - 1) {
           clearInterval(interval);
         }
@@ -38,7 +40,6 @@ const Typewriter: React.FC<{ text: string }> = ({ text }) => {
   }, [currentIndex, text]);
 
   return <ReactMarkdown>{displayText}</ReactMarkdown>;
-
 };
 
 const AnimatedCounter: React.FC<{ end: number }> = ({ end }) => {
@@ -70,12 +71,9 @@ export default function Home() {
   const [language, setLanguage] = useState("english");
   const [roastCount, setRoastCount] = useState(0);
   const [useImageGenerator, setUseImageGenerator] = useState(false);
-  const [roastResponse, setRoastResponse] = useState<RoastResponse | null>(null);
+  const [showContextMenu, setShowContextMenu] = useState(false);
 
-
-
-
-
+  const [roastResponse, setRoastResponse] = useState<RoastResponse | null>();
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -103,18 +101,29 @@ export default function Home() {
     setLanguage(e.target.value);
   };
 
-
-
   useEffect(() => {
-    return roastStatus === RoastStatus.initial ? getRoastCount((count: any) => setRoastCount(count)) : () => { };
+    if (roastStatus === RoastStatus.initial) {
+      getRoastCount((count: any) => setRoastCount(count));
+    }
+
   }, []);
+  const handleShare = () => {
+    setShowContextMenu(true);
+  };
+
+  const handleContextMenuClose = () => {
+    setShowContextMenu(false);
+  };
 
   const handleSubmit = async () => {
+    if (roastStatus === RoastStatus.success) {
+      return handleShare();
+    }
     submitRoastRequest(
       roastLevel,
       roleType,
       roastStatus,
-      setRoastStatus,
+      setRoastStatus as React.Dispatch<React.SetStateAction<string>>,
       setRoastResponse as React.Dispatch<React.SetStateAction<RoastResponse | null>>,
       () => roastCount,
       resumeText,
@@ -123,7 +132,6 @@ export default function Home() {
       useImageGenerator
     );
   };
-
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
@@ -230,111 +238,80 @@ export default function Home() {
                   ))}
                 </select>
               </div>
-              {
-                roastLevel !== 'vulgar' &&
-
-                (
-                  <div>
-                    <div style={{
-                      flexDirection: "row",
-                      display: "flex",
-
-                      alignItems: "center",     // Aligns items along the cross axis (vertical in row)
-                    }}>
-                      <label htmlFor="useImageGenerator" className="block mb-2 text-sm font-medium">
-                        Use Image Generator
-                      </label>
-
-                      <Switch
-                        title="Use Image Generator"
-                        color="primary"
-                        checked={useImageGenerator}
-                        onChange={() => setUseImageGenerator(!useImageGenerator)}
-                      />
-                    </div>
-
-
-                    {useImageGenerator && (
-                      <div className="mb-4 text-yellow-400">
-                        Please note: Response might take some time as we generate your image.
-                      </div>
-                    )}
-
+              {roastLevel !== 'vulgar' && (
+                <div>
+                  <div style={{ flexDirection: "row", display: "flex", alignItems: "center" }}>
+                    <label htmlFor="useImageGenerator" className="block mb-2 text-sm font-medium">
+                      Use Image Generator
+                    </label>
+                    <Switch
+                      title="Use Image Generator"
+                      color="primary"
+                      checked={useImageGenerator}
+                      onChange={() => setUseImageGenerator(!useImageGenerator)}
+                    />
                   </div>
-                )
-              }
-
+                  {useImageGenerator && (
+                    <div className="mb-4 text-yellow-400">
+                      Please note: Response might take some time as we generate your image.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-
-
-
           )}
           {roastStatus === RoastStatus.success && (
             <div>
-              <div className="text-center mt-4" style={{
-                padding: "10px",
-                margin: "10px",
-              }}>
+              <div className="text-center mt-4" style={{ padding: "10px", margin: "10px" }}>
                 <Typewriter text={roastResponse?.roast ?? "Roast not found"} />
               </div>
               {roastResponse && roastResponse.meme && roastResponse.meme.output && (
+                <DownloadImageComponent
+                  html={roastResponse.meme.outputFull.html}
+                >
 
-                <div
-                  className="flex items-center justify-center"
-                  style={{
-
-
-                    marginBottom: "20px",
-
-                  }}
-
-                  dangerouslySetInnerHTML={{ __html: roastResponse.meme.outputFull.html }}>
-
-
-                </div>
-
+                </DownloadImageComponent>
               )}
-
             </div>
           )}
-
-
-
           <div className="mb-4">
             <button
               onClick={handleSubmit}
               className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 flex items-center justify-center"
               style={{
-                width: "20%", // Set width to 50%
-                margin: "0 auto", // Center align horizontally
+                height: roastStatus === RoastStatus.success ? "0px" : "40px",
+                width: "20%",
+                margin: "0 auto",
+                opacity: roastStatus !== RoastStatus.success ? 1 : 0
               }}
               disabled={roastStatus === RoastStatus.loading}
+
             >
               {roastStatus === RoastStatus.loading ? (
                 <ClipLoader color={"#ffffff"} loading={true} size={20} />
               ) : (
-                roastStatus === RoastStatus.success ? "Roast Again" :
-                  "Roast Now"
+                roastStatus === RoastStatus.success ? "Share" : "Roast Now"
               )}
             </button>
+            {roastStatus === RoastStatus.success && (<ShareMenu
+              image={roastResponse?.meme?.output ?? ""}
+            ></ShareMenu>)}
+
+
           </div>
 
-
-          <div className="mt-8 text-center text-gray-400 text-sm " style={{
-            alignItems: "center",
-            justifyContent: "center",
-            display: "flex",
-          }}>
+          <div className="mt-8 text-center text-gray-400 text-sm" style={{ alignItems: "center", justifyContent: "center", display: "flex" }}>
             <a href="https://github.com/Djsmk123/roast-my-resume" target="_blank" rel="noopener noreferrer" className="ml-2">
               <FaGithub size={20} className="text-gray-400 hover:text-gray-600" />
             </a>
-            <p className="mt-4" style={{
-              paddingBottom: "15px",
-              paddingLeft: "10px",
-            }}>Made with ❤️ by <a href="">smkwinner</a></p>
+            <p className="mt-4" style={{ paddingBottom: "15px", paddingLeft: "10px" }}>
+              Made with ❤️ by <a href="">smkwinner</a>
+            </p>
           </div>
         </div>
       </div>
-    </main >
+    </main>
   );
 }
+
+
