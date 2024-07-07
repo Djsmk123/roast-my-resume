@@ -77,7 +77,7 @@ async function submitRoastRequest(
         .then((data) => {
             //parse data
             const roastResponse: RoastResponse = data['data'];
-            if (roastResponse.meme && roastResponse.meme.outputFull.html) {
+            if (roastResponse.meme && roastResponse.meme.outputFull && roastResponse.meme.outputFull.html) {
                 //remove html logo from the page
                 const html = roastResponse?.meme?.outputFull.html;
                 //remove following content from the page 
