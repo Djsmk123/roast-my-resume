@@ -269,7 +269,7 @@ export default function Home() {
           </div>
           <div className="mt-4 flex justify-around" style={{ marginBottom: '0.8rem' }}>
             <a
-              href="https://github.com"
+              href="https://github.com/Djsmk123/roast-my-resume"
               className={`flex items-center text-${theme === "dark" ? "white" : "gray-500"} hover:text-${theme === "dark" ? "gray-400" : "gray-500"}`}
             >
               <FaGithub size={24} />

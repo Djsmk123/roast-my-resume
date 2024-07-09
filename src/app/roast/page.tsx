@@ -103,7 +103,7 @@ export default function Home() {
 
                 <Box mt={2} display="flex" justifyContent="space-around" mb={1}>
                     <a
-                        href="https://github.com"
+                        href="https://github.com/Djsmk123/roast-my-resume"
                         className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
                     >
                         <FaGithub size={24} />
