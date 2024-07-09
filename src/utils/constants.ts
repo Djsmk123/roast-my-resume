@@ -3,7 +3,7 @@ enum RoastLevel {
     hard = "Hard-hearted",
     light = "Light",
     dark = "Dark",
-    vulgar = "Vulgar",
+    vulgar = "Vulgar"
 }
 
 enum RoastStatus {

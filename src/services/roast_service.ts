@@ -3,41 +3,13 @@ import RoastResponse from "../model/roast_model";
 async function submitRoastRequest(
     roastLevel: string,
     roleType: string,
-    roastStatus: RoastStatus,
-    setRoastStatus: (status: RoastStatus) => void,
-    setRoastResponse: (text: RoastResponse) => void,
-    setRoastCount: (count: any) => number,
     resumeText: string,
     selectedFile: File | null,
     language: string,
     useImage: boolean
 
-) {
-    // Prevent multiple requests
-    if (roastStatus === RoastStatus.loading) {
-        return;
-    }
-    if (roastStatus === RoastStatus.success) {
-        setRoastStatus(RoastStatus.initial);
-        return;
-    }
-    if (roastLevel === "") {
-        alert("Please select a roast level");
-        return;
-    }
-    if (roleType === "") {
-        alert("Please select a role type");
-        return;
-    }
-    if (language === "") {
-        alert("Please select a language");
-        return;
-    }
+): Promise<RoastResponse> {
 
-    if (!resumeText && !selectedFile) {
-        alert("Please provide a file or resume text");
-        return;
-    }
     const BASEURL = process.env.Backend_URL;
 
     const formData = new FormData();
@@ -54,9 +26,9 @@ async function submitRoastRequest(
     if (resumeText) {
         formData.append("textBasedResume", resumeText);
     }
-    setRoastStatus(RoastStatus.loading);
 
-    await fetch(
+
+    const data = await fetch(
         `${BASEURL}/roast`,
         {
             method: "POST",
@@ -65,46 +37,26 @@ async function submitRoastRequest(
                 Accept: "application/json",
             },
             cache: 'no-store',
-        })
-        .then(async (response) => {
-            var data = await response.json();
-            if (response.ok) {
-                return data;
-            }
-
-            throw new Error(data.message);
-        })
-        .then((data) => {
-            //parse data
-            const roastResponse: RoastResponse = data['data'];
-            if (roastResponse.meme && roastResponse.meme.outputFull && roastResponse.meme.outputFull.html) {
-                //remove html logo from the page
-                const html = roastResponse?.meme?.outputFull.html;
-                //remove following content from the page 
-                const logoHtmlTobeRemove = "<img src=\"https://res.cloudinary.com/dzkwltgyd/image/upload/v1719301688/canvas-block-production/vol8i5mnu74j1jbulxsv.jpg\" style=\"width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0px; user-select: none; \" alt=\"\" />";
-                const updatedHtml = html?.replace(logoHtmlTobeRemove, "");
-                if (roastResponse?.meme?.outputFull.html &&
-                    updatedHtml) {
-                    roastResponse.meme.outputFull.html = updatedHtml;
-                }
-            }
-
-            setRoastStatus(RoastStatus.success);
-            setRoastResponse(roastResponse);
-            alert("Roast generated successfully!");
-
-            // Update roast count
-            setRoastCount((prevCount: number) => {
-                const newCount = prevCount + 1;
-                localStorage.setItem("roastCount", newCount.toString());
-                localStorage.setItem("roastCountTimestamp", Date.now().toString());
-                return newCount;
-            });
-        })
-        .catch((error) => {
-            setRoastStatus(RoastStatus.error);
-            alert("An error occurred. Please try again later.");
         });
+    if (data.ok) {
+        var response = await data.json();
+        //parse data
+        const roastResponse: RoastResponse = response['data'];
+        if (roastResponse.meme && roastResponse.meme.outputFull && roastResponse.meme.outputFull.html) {
+            //remove html logo from the page
+            const html = roastResponse?.meme?.outputFull.html;
+            //remove following content from the page 
+            const logoHtmlTobeRemove = "<img src=\"https://res.cloudinary.com/dzkwltgyd/image/upload/v1719301688/canvas-block-production/vol8i5mnu74j1jbulxsv.jpg\" style=\"width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0px; user-select: none; \" alt=\"\" />";
+            const updatedHtml = html?.replace(logoHtmlTobeRemove, "");
+            if (roastResponse?.meme?.outputFull.html &&
+                updatedHtml) {
+                roastResponse.meme.outputFull.html = updatedHtml;
+            }
+        }
+        return roastResponse;
+    }
+    throw new Error("An error occurred while submitting roast request");
+
 
 
 }
@@ -131,7 +83,12 @@ function getRoastCount(
     fetch(`${BASEURL}/roastCount`,)
         .then((response) => {
             if (!response.ok) {
-                throw new Error("An error occurred while fetching roast count");
+                // throw new Error("An error occurred while fetching roast count");
+                setRoastCount(0);
+                return {
+                    roastCount: 0,
+                    message: "An error occurred while fetching roast count",
+                };
             }
             return response.json();
         })

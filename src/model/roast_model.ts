@@ -1,5 +1,6 @@
 interface RoastResponse {
     roast: string;
+    id: string;
     meme: {
         output: string;
         outputFull: {
