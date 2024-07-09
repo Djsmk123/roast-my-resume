@@ -1,3 +1,4 @@
+import { Skeleton } from "@mui/material";
 import { toPng } from "html-to-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
@@ -40,7 +41,9 @@ const DownloadImageComponent: React.FC<DownloadImageProps> = ({ html, afterDownl
 
     return (
         <div>
-            {loading && <p>Loading...</p>}
+            {loading && <Skeleton variant="rectangular"
+
+                width={"100vh"} height={"100vh"} />}
             {error && <p>Error: {error}</p>}
             {!loading && !error && (
                 <div
@@ -54,8 +57,8 @@ const DownloadImageComponent: React.FC<DownloadImageProps> = ({ html, afterDownl
             {imageUrl && (
                 <div className="flex items-center justify-center">
                     <img
-                        width="50%"
-                        height="50%"
+                        width="70%"
+                        height="70%"
                         src={imageUrl} alt="Downloaded Image" />
                 </div>
             )}
