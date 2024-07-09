@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { SlShare } from "react-icons/sl";
@@ -13,10 +14,6 @@ import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 
 const BASEURL = process.env.Backend_URL;
 console.log("Base URL: ", BASEURL);
-
-interface RoastPros {
-    theme: string;
-}
 
 export default function Home() {
     const { theme } = useTheme();
