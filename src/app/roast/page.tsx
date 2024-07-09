@@ -1,7 +1,5 @@
-'use client';
-
 import { useEffect, useState } from "react";
-import { FaGithub } from 'react-icons/fa';
+import { FaGithub } from "react-icons/fa";
 import { SlShare } from "react-icons/sl";
 import BackgroundComponent from "../../components/background";
 import ShareMenu from "@/components/share_button";
@@ -11,26 +9,24 @@ import DownloadImageComponent from "@/components/download_image";
 import Typewriter from "@/components/typwriter";
 import { useTheme } from "@/components/theme";
 import { getRoastById } from "@/services/roast_service";
-
-import { Alert, Box, CircularProgress, Typography, } from "@mui/material";
+import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 
 const BASEURL = process.env.Backend_URL;
 console.log("Base URL: ", BASEURL);
 
 interface RoastPros {
     theme: string;
-    roastResponse: RoastResponse | null;
 }
 
-export default function Home(props: RoastPros) {
+export default function Home() {
     const { theme } = useTheme();
 
-    const [shareOpen, setShareOpen] = useState(false);
     const [roastResponse, setRoastResponse] = useState<RoastResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEmpty, setIsEmpty] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [shareOpen, setShareOpen] = useState(false);
 
     useEffect(() => {
         getRoast();
@@ -63,30 +59,18 @@ export default function Home(props: RoastPros) {
                     setIsEmpty(true);
                     setLoading(false);
                 }
-
             }
         } catch (error) {
             setError("An unexpected error occurred.");
             setLoading(false);
         }
     }
-    // async function downloadImageRoast() {
-    //     //check if image is available
-    //     if (imageUrl) {
-    //         const dataUrl = imageUrl;
 
-    //         const link = document.createElement("a");
-    //         link.download = "roast" + Date.now() + ".png";
-    //         link.href = dataUrl;
-    //         link.click();
-    //     }
-    // }
     const renderContent = () => {
         if (loading) {
             return (
                 <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
                     <CircularProgress />
-
                 </Box>
             );
         }
@@ -102,10 +86,7 @@ export default function Home(props: RoastPros) {
         if (isEmpty || !roastResponse) {
             return (
                 <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                    <Alert severity="warning">{
-                        "No roast found. Please try again later. "
-                    }</Alert>
-
+                    <Alert severity="warning">{"No roast found. Please try again later."}</Alert>
                 </Box>
             );
         }
@@ -126,29 +107,13 @@ export default function Home(props: RoastPros) {
                 <Box mt={2} display="flex" justifyContent="space-around" mb={1}>
                     <a
                         href="https://github.com"
-                        // style={{
-                        //     marginRight: "20 auto",
-                        // }}
                         className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
                     >
                         <FaGithub size={24} />
                         <Typography variant="body2" ml={1}>View on GitHub</Typography>
                     </a>
-                    {/* <Typography
-                        onClick={() => downloadImageRoast()}
-                        // style={{
-                        //     marginRight: "20 auto",
-                        // }}
-                        className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
-                    >
-                        <FaDownload size={24} />
-                        <Typography variant="body2" ml={1}>Download</Typography>
-                    </Typography> */}
                     <Typography
                         onClick={() => setShareOpen(!shareOpen)}
-                        // style={{
-                        //     marginRight: "20 auto",
-                        // }}
                         className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
                     >
                         <SlShare size={24} />
@@ -159,7 +124,6 @@ export default function Home(props: RoastPros) {
             </Box>
         );
     };
-
 
     return (
         <BackgroundComponent child={renderContent()} />
