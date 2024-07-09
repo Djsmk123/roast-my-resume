@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -18,11 +17,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <ThemeProvider
-        children={(
-          <body className={inter.className}>{children}</body>
-        )}
-      >
+      <ThemeProvider>
+        <body className={inter.className}>{children}</body>
       </ThemeProvider>
     </html>
   );
