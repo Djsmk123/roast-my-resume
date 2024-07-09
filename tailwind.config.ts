@@ -1,3 +1,5 @@
+// tailwind.config.ts
+
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -6,15 +8,23 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: 'media', // Enable dark mode based on system preferences
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      colors: {
+        'foreground-light': 'rgb(0, 0, 0)',
+        'foreground-dark': 'rgb(255, 255, 255)',
+        'background-start-light': 'rgb(214, 219, 220)',
+        'background-end-light': 'rgb(255, 255, 255)',
+        'background-start-dark': 'rgb(0, 0, 0)',
+        'background-end-dark': 'rgb(0, 0, 0)',
       },
     },
   },
+  variants: {
+    extend: {},
+  },
   plugins: [],
 };
+
 export default config;

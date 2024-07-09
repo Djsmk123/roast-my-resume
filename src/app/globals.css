@@ -1,33 +1,36 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* global.css */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  --background-start-light: #ffffff;
+  --background-end-light: #f0f0f0;
+  --foreground-light: #000000;
+  --background-start-dark: #1a1a1a;
+  --background-end-dark: #333333;
+  --foreground-dark: #ffffff;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  transition: background 0.3s, color 0.3s;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+
+.bg-gradient-to-b {
+  background-image: var(--background-start-light);
+}
+
+.text-foreground-light {
+  color: var(--foreground-light);
+}
+
+.bg-gradient-to-b.dark {
+  background-image: var(--background-start-dark);
+}
+
+.text-foreground-dark {
+  color: var(--foreground-dark);
 }
