@@ -1,17 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { ClipLoader } from "react-spinners";
 
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
 import { submitRoastRequest, getRoastCount } from "../services/roast_service";
 import Switch from '@mui/material/Switch';
-import RoastResponse from "@/model/roast_model";
 import React from "react";
 import BackgroundComponent from '@/components/background';
-import { stat } from 'fs';
+
+import { FaGithub } from 'react-icons/fa';
+import { useTheme } from '@/components/theme';
 
 
 const BASEURL = process.env.Backend_URL;
@@ -54,7 +55,8 @@ export default function Home() {
   const [language, setLanguage] = useState("english");
   const [roastCount, setRoastCount] = useState(0);
   const [useImageGenerator, setUseImageGenerator] = useState(false);
-  const [theme, setTheme] = useState("dark");
+  const theme: string = useTheme().theme;
+  // const [theme, setTheme] = useState("dark");
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -84,10 +86,7 @@ export default function Home() {
 
 
   useEffect(() => {
-
-    if (roastStatus === RoastStatus.initial) {
-      getRoastCount((count: any) => setRoastCount(count));
-    }
+    getRoastCount((count: any) => setRoastCount(count));
   }, [roastStatus]);
 
 
@@ -128,7 +127,7 @@ export default function Home() {
         language,
         useImageGenerator,
       );
-      localStorage.setItem("roastResponse?id=" + res?.id, JSON.stringify(res?.id));
+
       setRoastCount((prevCount: number) => {
         const newCount = prevCount + 1;
         localStorage.setItem("roastCount", newCount.toString());
@@ -141,10 +140,11 @@ export default function Home() {
       alert("An error occurred while submitting roast request");
     }
   };
+  console.log("Theme : ", theme);
 
   return (
     <BackgroundComponent
-      onThemeChange={(theme) => setTheme(theme)}
+
       child={(
         <div>
           {roastStatus !== RoastStatus.success && (
@@ -228,6 +228,7 @@ export default function Home() {
                   ))}
                 </select>
               </div>
+
               <div className="mb-4 flex items-center">
                 <Switch
                   checked={useImageGenerator}
@@ -236,13 +237,22 @@ export default function Home() {
                 />
                 <p className={`ml-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Use Image Generator</p>
               </div>
+              {useImageGenerator && (
+                <div className='text-sm font-medium text-red-500'
+                >
+                  Using the image  generator will take longer to process your request.
+                </div>
+              )}
+
+
             </div>
+
           )}
 
 
           {roastStatus === RoastStatus.loading && (
             <div className="flex justify-center mt-4">
-              <ClipLoader color="#00BFFF" loading={true} size={150} />
+              <ClipLoader color="#00BFFF" loading={true} size={30} />
             </div>
           )}
           <div className="mt-4">
@@ -255,6 +265,16 @@ export default function Home() {
                 ? "Submit Roast"
                 : "Roasting..."}
             </button>
+
+          </div>
+          <div className="mt-4 flex justify-around" style={{ marginBottom: '0.8rem' }}>
+            <a
+              href="https://github.com"
+              className={`flex items-center text-${theme === "dark" ? "white" : "gray-500"} hover:text-${theme === "dark" ? "gray-400" : "gray-500"}`}
+            >
+              <FaGithub size={24} />
+              <span className="ml-2 text-sm">View on GitHub</span>
+            </a>
 
           </div>
         </div>

@@ -3,9 +3,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface DownloadImageProps {
     html: string;
+    afterDownload?: (url: string) => void
 }
 
-const DownloadImageComponent: React.FC<DownloadImageProps> = ({ html }) => {
+const DownloadImageComponent: React.FC<DownloadImageProps> = ({ html, afterDownload }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -19,6 +20,8 @@ const DownloadImageComponent: React.FC<DownloadImageProps> = ({ html }) => {
                     const dataUrl = await toPng(componentRef.current);
                     setImageUrl(dataUrl);
                     setLoading(false);
+                    afterDownload && afterDownload(dataUrl);
+
                 } catch (error) {
                     console.error('Failed to convert HTML to image', error);
                     setError('Failed to convert HTML to image');

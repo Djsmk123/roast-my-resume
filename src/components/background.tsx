@@ -2,18 +2,16 @@
 
 import { Switch } from "@mui/material";
 import { Analytics } from "@vercel/analytics/next";
-import { useState } from "react";
+import React from "react";
+import { useTheme } from "../components/theme";
+
 interface BackgroundComponentProps {
     child: React.ReactNode;
-    onThemeChange: (theme: string) => void;
-
 }
-const BackgroundComponent = ({ child, onThemeChange }: BackgroundComponentProps) => {
-    const [theme, setTheme] = useState("dark");
-    const toggleTheme = () => {
-        setTheme(theme === "light" ? "dark" : "light");
-        onThemeChange(theme === "light" ? "dark" : "light");
-    };
+
+const BackgroundComponent = ({ child }: BackgroundComponentProps) => {
+    const { theme, toggleTheme } = useTheme();
+
     return (
         <main className={`flex min-h-screen items-center justify-center bg-${theme === "dark" ? "gray-900" : "white"} text-${theme === "dark" ? "white" : "black"}`}>
             <div className={`w-full max-w-5xl p-8 ${theme === "dark" ? "dark" : ""}`}>
@@ -34,18 +32,10 @@ const BackgroundComponent = ({ child, onThemeChange }: BackgroundComponentProps)
                         </div>
                     </div>
                     {child}
-
-
-
-
-
-
-
                 </div>
-
-
             </div>
         </main>
     );
-}
+};
+
 export default BackgroundComponent;

@@ -53,6 +53,7 @@ async function submitRoastRequest(
                 roastResponse.meme.outputFull.html = updatedHtml;
             }
         }
+        localStorage.setItem("roastResponse?id=" + roastResponse.id, JSON.stringify(roastResponse));
         return roastResponse;
     }
     throw new Error("An error occurred while submitting roast request");
@@ -98,4 +99,35 @@ function getRoastCount(
             localStorage.setItem("roastCountTimestamp", Date.now().toString());
         });
 }
-export { submitRoastRequest, getRoastCount };
+async function getRoastById(
+    id: string,
+): Promise<RoastResponse | null> {
+    const BASEURL = process.env.Backend_URL;
+    const response = await fetch(`${BASEURL}/roast/${id}`);
+    if (response.ok) {
+        const roastData = await response.json();
+        const roastResponse: RoastResponse = roastData['data'];
+        if (roastResponse.meme && roastResponse.meme.outputFull && roastResponse.meme.outputFull.html) {
+            //remove html logo from the page
+            const html = roastResponse?.meme?.outputFull.html;
+            //remove following content from the page 
+            const logoHtmlTobeRemove = "<img src=\"https://res.cloudinary.com/dzkwltgyd/image/upload/v1719301688/canvas-block-production/vol8i5mnu74j1jbulxsv.jpg\" style=\"width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0px; user-select: none; \" alt=\"\" />";
+            const updatedHtml = html?.replace(logoHtmlTobeRemove, "");
+            if (roastResponse?.meme?.outputFull.html &&
+                updatedHtml) {
+                roastResponse.meme.outputFull.html = updatedHtml;
+            }
+        }
+        localStorage.setItem("roastResponse?id=" + id, JSON.stringify(roastResponse));
+        return roastResponse;
+
+    } else {
+        const error = await response.json();
+        if (error.message === "Roast not found") {
+            return null;
+        }
+    }
+
+    throw new Error("Failed to fetch roast data from the server.");
+}
+export { submitRoastRequest, getRoastCount, getRoastById };

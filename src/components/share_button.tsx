@@ -1,11 +1,14 @@
 import RoastResponse from '@/model/roast_model';
 import { Box } from '@mui/material';
 // import { TwitterShareButton, LinkedinShareButton, RedditShareButton, WhatsappShareButton } from 'react-share';
-import { TwitterIcon, LinkedinIcon, RedditIcon, WhatsappIcon } from 'react-share';
+import { TwitterIcon, LinkedinIcon, WhatsappIcon } from 'react-share';
+import { FaCopy } from "react-icons/fa";
+
 import { shareUrl } from '@/utils/share';
 
 interface ShareMenuProps {
-    roastResponse: RoastResponse
+    roastResponse: RoastResponse,
+    imageUrl: string | null;
 
 }
 
@@ -15,37 +18,44 @@ interface ShareOption {
     onClick: () => void;
 }
 
-const ShareMenu: React.FC<ShareMenuProps> = ({ roastResponse }) => {
+const ShareMenu: React.FC<ShareMenuProps> = ({ roastResponse, imageUrl }) => {
+
 
     const shareOptions: ShareOption[] = [
         {
             icon: <TwitterIcon size={24} round style={{ margin: 'auto', display: 'block' }} />,
-            title: 'Share on Twitter',
+            title: 'Twitter',
             onClick: () => {
-                // Add your Twitter share logic here
-                const shareLink = shareUrl(roastResponse);
-                alert(shareLink);
+                share('twitter', roastResponse, imageUrl);
             }
         },
         {
             icon: <LinkedinIcon size={24} round style={{ margin: 'auto', display: 'block' }} />,
-            title: 'Share on LinkedIn',
+            title: "LinkedIn",
             onClick: () => {
-                // Add your LinkedIn share logic here
+                share('linkedin', roastResponse, imageUrl);
             }
         },
-        {
-            icon: <RedditIcon size={24} round style={{ margin: 'auto', display: 'block' }} />,
-            title: 'Share on Reddit',
-            onClick: () => {
-                // Add your Reddit share logic here
-            }
-        },
+
         {
             icon: <WhatsappIcon size={24} round style={{ margin: 'auto', display: 'block' }} />,
-            title: 'Share on WhatsApp',
+            title: 'WhatsApp',
             onClick: () => {
-                // Add your WhatsApp share logic here
+                share('whatsapp', roastResponse, imageUrl);
+            }
+        },
+        {
+            icon: <FaCopy size={24} style={{
+                margin: 'auto', display: 'block',
+                color: "blue-500"
+
+
+            }} />,
+            title: 'Copy Link',
+
+            onClick: () => {
+                navigator.clipboard.writeText(shareUrl(roastResponse));
+                alert('Link copied to clipboard');
             }
         }
     ];
@@ -62,5 +72,34 @@ const ShareMenu: React.FC<ShareMenuProps> = ({ roastResponse }) => {
         </div>
     );
 };
+function share(
+    platform: string,
+    roastResponse: RoastResponse,
+    imageUrl: string | null,
+) {
+    const shareLink = shareUrl(roastResponse);
+    const twitterUsername = "SmkWinner";
+    const linkedinUsername = "md-mobin-bb928820b";
+    switch (platform) {
+        case 'twitter':
+            var text = `I just got roasted by the Roast Bot!,\n\nCheck out my roast here: \n\nhttps://roast-bot.vercel.app/roast/${roastResponse.id} by @${twitterUsername} #RoastMyResume24`;
+            window.open(`https://twitter.com/intent/tweet?text=${text}. {shareLink}`);
+            return;
+        case 'linkedin':
+            var text = `I just got roasted by the Roast Bot!,\n\nCheck out my roast here: \n\nhttps://roast-bot.vercel.app/roast/${roastResponse.id} by @${twitterUsername} #RoastMyResume24`;
+            window.open(`https://www.linkedin.com/shareArticle?url=${shareLink}&title=${roastResponse.roast}&summary=${roastResponse.roast} by ${linkedinUsername}`);
+            break;
+        case 'whatsapp':
+            var text = `I just got roasted by the Roast Bot!,\n\nCheck out my roast here: \n\nhttps://roast-bot.vercel.app/roast/${roastResponse.id} by @${twitterUsername} #RoastMyResume24`;
+            if (imageUrl) {
+                text = `${text}\n\nHere is the image roast: ${imageUrl}`;
+            }
+
+            window.open(`https://api.whatsapp.com/send?text=${roastResponse.roast} by ${twitterUsername} ${shareLink}`);
+            break;
+    }
+
+
+}
 
 export default ShareMenu;
