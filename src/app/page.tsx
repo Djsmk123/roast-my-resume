@@ -1,28 +1,18 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useContext, useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
-
 import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
 import { submitRoastRequest, getRoastCount } from "../services/roast_service";
 import Switch from '@mui/material/Switch';
 import React from "react";
 import BackgroundComponent from '@/components/background';
-
-import { FaGithub } from 'react-icons/fa';
+import { FaGithub, FaTelegram } from 'react-icons/fa';
 import { useTheme } from '@/components/theme';
-
+import TermsCondition from '@/components/terms_condition';
 
 const BASEURL = process.env.Backend_URL;
-console.log("Base URL: ", BASEURL);
-
-
-
-
-
-
 
 const AnimatedCounter: React.FC<{ end: number }> = ({ end }) => {
   const [count, setCount] = useState(0);
@@ -55,8 +45,9 @@ export default function Home() {
   const [language, setLanguage] = useState("english");
   const [roastCount, setRoastCount] = useState(0);
   const [useImageGenerator, setUseImageGenerator] = useState(false);
-  const theme: string = useTheme().theme;
-  // const [theme, setTheme] = useState("dark");
+  const [openTerms, setOpenTerms] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const theme = useTheme().theme;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
@@ -83,19 +74,18 @@ export default function Home() {
     setLanguage(e.target.value);
   };
 
-
-
   useEffect(() => {
+    //check if user has already agreed to terms
+    const agreed = localStorage.getItem("agreed");
+    //open terms if user has not agreed
+    if (!agreed) {
+      setOpenTerms(true);
+    }
     getRoastCount((count: any) => setRoastCount(count));
   }, [roastStatus]);
 
-
-
   const handleSubmit = async () => {
-    // Prevent multiple requests
-    if (roastStatus === RoastStatus.loading) {
-      return;
-    }
+    if (roastStatus === RoastStatus.loading) return;
     if (roastStatus === RoastStatus.success) {
       setRoastStatus(RoastStatus.initial);
       return;
@@ -112,11 +102,11 @@ export default function Home() {
       alert("Please select a language");
       return;
     }
-
     if (!resumeText && !selectedFile) {
       alert("Please provide a file or resume text");
       return;
     }
+
     try {
       setRoastStatus(RoastStatus.loading);
       const res = await submitRoastRequest(
@@ -134,154 +124,181 @@ export default function Home() {
         localStorage.setItem("roastCountTimestamp", Date.now().toString());
         return newCount;
       });
-      router.push("/roast?id=" + res?.id,);
+      router.push("/roast?id=" + res?.id);
     } catch (e) {
       setRoastStatus(RoastStatus.error);
       alert("An error occurred while submitting roast request");
     }
   };
-  console.log("Theme : ", theme);
+
+
+
+  const handleCloseTerms = () => {
+    setOpenTerms(false);
+  };
+
+  const handleAgree = () => {
+    //store agreement in local storage
+    localStorage.setItem("agreed", "true");
+    setConsent(true);
+    setOpenTerms(false);
+  };
 
   return (
     <BackgroundComponent
-
       child={(
         <div>
           {roastStatus !== RoastStatus.success && (
             <div className="mb-4">
-              <p className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Total Roasts: <AnimatedCounter end={roastCount} /></p>
+              <p className={`text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
+                Total Roasts: <AnimatedCounter end={roastCount} />
+              </p>
             </div>
           )}
-          {roastStatus !== RoastStatus.success && (
-            <div className="mb-4 flex flex-col items-center">
-              <div className="w-full">
-                <label htmlFor="resumeText" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Text-based Roast</label>
-                <textarea
-                  id="resumeText"
-                  className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"} placeholder-gray-400`}
-                  rows={4}
-                  value={resumeText}
-                  onChange={handleTextChange}
-                  placeholder="Enter text here..."
-                ></textarea>
-              </div>
-              <div className="my-2">
-                <p className={`text-sm font-medium text-center ${theme === "dark" ? "text-white" : "text-black"}`}>OR</p>
-              </div>
-              <div className="w-full">
-                <input
-                  type="file"
-                  id="fileInput"
-                  onChange={handleFileChange}
-                  accept=".pdf"
-                  className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${theme === "dark" ? "dark" : ""}`}
-                />
-              </div>
-            </div>
 
-          )}
-          {roastStatus !== RoastStatus.success && (
-            <div>
-              <div className="mb-4">
-                <label htmlFor="roastLevel" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Roast Level</label>
-                <select
-                  id="roastLevel"
-                  className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
-                  value={roastLevel}
-                  onChange={handleRoastLevelChange}
-                >
-                  {Object.entries(RoastLevel).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="roleType" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Role Type</label>
-                <select
-                  id="roleType"
-                  className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
-                  value={roleType}
-                  onChange={handleRoleTypeChange}
-                >
-
-                  {Object.entries(RoleType).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="language" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Language</label>
-                <select
-                  id="language"
-                  className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
-                  value={language}
-                  onChange={handleLanguageChange}
-                >
-                  {Object.entries(Languages).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mb-4 flex items-center">
-                <Switch
-                  checked={useImageGenerator}
-                  onChange={(e) => setUseImageGenerator(e.target.checked)}
-                  color="primary"
-                />
-                <p className={`ml-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Use Image Generator</p>
-              </div>
-              {useImageGenerator && (
-                <div className='text-sm font-medium text-red-500'
-                >
-                  Using the image  generator will take longer to process your request.
+          <div>
+            {roastStatus !== RoastStatus.success && (
+              <div className="mb-4 flex flex-col items-center">
+                <div className="w-full">
+                  <label htmlFor="resumeText" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
+                    Text-based Roast
+                  </label>
+                  <textarea
+                    id="resumeText"
+                    className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"} placeholder-gray-400`}
+                    rows={4}
+                    value={resumeText}
+                    onChange={handleTextChange}
+                    placeholder="Enter text here..."
+                  ></textarea>
                 </div>
-              )}
-
-
+                <div className="my-2">
+                  <p className={`text-sm font-medium text-center ${theme === "dark" ? "text-white" : "text-black"}`}>OR</p>
+                </div>
+                <div className="w-full">
+                  <input
+                    type="file"
+                    id="fileInput"
+                    onChange={handleFileChange}
+                    accept=".pdf"
+                    className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${theme === "dark" ? "dark" : ""}`}
+                  />
+                </div>
+              </div>
+            )}
+            {roastStatus !== RoastStatus.success && (
+              <div>
+                <div className="mb-4">
+                  <label htmlFor="roastLevel" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Roast Level</label>
+                  <select
+                    id="roastLevel"
+                    className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
+                    value={roastLevel}
+                    onChange={handleRoastLevelChange}
+                  >
+                    {Object.entries(RoastLevel).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="roleType" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Role Type</label>
+                  <select
+                    id="roleType"
+                    className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
+                    value={roleType}
+                    onChange={handleRoleTypeChange}
+                  >
+                    {Object.entries(RoleType).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="language" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Language</label>
+                  <select
+                    id="language"
+                    className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
+                    value={language}
+                    onChange={handleLanguageChange}
+                  >
+                    {Object.entries(Languages).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4 flex items-center">
+                  <Switch
+                    checked={useImageGenerator}
+                    onChange={(e) => setUseImageGenerator(e.target.checked)}
+                    color="primary"
+                  />
+                  <p className={`ml-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Use Image Generator</p>
+                </div>
+                {useImageGenerator && (
+                  <div className='text-sm font-medium text-red-500'>
+                    Using the image generator will take longer to process your request.
+                  </div>
+                )}
+              </div>
+            )}
+            {roastStatus === RoastStatus.loading && (
+              <div className="flex justify-center mt-4">
+                <ClipLoader color="#00BFFF" loading={true} size={30} />
+              </div>
+            )}
+            <div className="mt-4">
+              <button
+                className={`w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md ${roastStatus === RoastStatus.success ? "hidden" : ""}`}
+                onClick={handleSubmit}
+                disabled={roastStatus === RoastStatus.loading}
+              >
+                {roastStatus === RoastStatus.initial || roastStatus === RoastStatus.error
+                  ? "Submit Roast"
+                  : "Roasting..."}
+              </button>
             </div>
-
-          )}
-
-
-          {roastStatus === RoastStatus.loading && (
-            <div className="flex justify-center mt-4">
-              <ClipLoader color="#00BFFF" loading={true} size={30} />
+            <div className="mt-4 flex justify-around" style={{ marginBottom: '0.8rem' }}>
+              <a
+                href="https://github.com/Djsmk123/roast-my-resume"
+                target="_blank"
+                className={`flex items-center text-${theme === "dark" ? "white" : "gray-500"} hover:text-${theme === "dark" ? "gray-400" : "gray-500"}`}
+              >
+                <FaGithub size={24} />
+                <span className="ml-2 text-sm">View on GitHub</span>
+              </a>
+              <a
+                href="https://t.me/NotifyMeRoastBot"
+                target="_blank"
+                className={`flex items-center text-${theme === "dark" ? "white" : "gray-500"} hover:text-${theme === "dark" ? "gray-400" : "gray-500"}`}
+              >
+                <FaTelegram size={24} />
+                <span className="ml-2 text-sm">Now available on Telegram</span>
+              </a>
             </div>
-          )}
-          <div className="mt-4">
-            <button
-              className={`w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md ${roastStatus === RoastStatus.success ? "hidden" : ""}`}
-              onClick={handleSubmit}
-              disabled={roastStatus === RoastStatus.loading}
-            >
-              {roastStatus === RoastStatus.initial || roastStatus === RoastStatus.error
-                ? "Submit Roast"
-                : "Roasting..."}
-            </button>
-
           </div>
-          <div className="mt-4 flex justify-around" style={{ marginBottom: '0.8rem' }}>
-            <a
-              href="https://github.com/Djsmk123/roast-my-resume"
-              className={`flex items-center text-${theme === "dark" ? "white" : "gray-500"} hover:text-${theme === "dark" ? "gray-400" : "gray-500"}`}
-            >
-              <FaGithub size={24} />
-              <span className="ml-2 text-sm">View on GitHub</span>
-            </a>
 
-          </div>
+          <TermsCondition
+            openTerms={openTerms}
+            theme={theme}
+            handleAgree={handleAgree}
+            handleCloseTerms={handleCloseTerms}
+            consent={consent}
+            setConsent={setConsent}
+          />
+
+
+
+
         </div>
       )}
     >
-
     </BackgroundComponent>
   );
 }
-
