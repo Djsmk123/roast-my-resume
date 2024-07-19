@@ -121,6 +121,12 @@ export default function Home() {
       alert("Please provide a LinkedIn profile url or resume file");
       return;
     }
+    //check if valid linkedin profile url
+    if (roastType === RoastType.LinkedIn && !linkedInProfileUrl.includes("linkedin.com/in/")) {
+      alert("Please provide a valid LinkedIn profile url");
+      return;
+    }
+
 
     try {
       setRoastStatus(RoastStatus.loading);
@@ -196,7 +202,7 @@ export default function Home() {
                       rows={1}
                       value={linkedInProfileUrl}
                       onChange={handleTextChange}
-                      placeholder="LinkedIn Profile url."
+                      placeholder="LinkedIn Profile url "
                     ></textarea>
                   )}
                 </div>
