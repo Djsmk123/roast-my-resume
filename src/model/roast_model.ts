@@ -1,6 +1,7 @@
 interface RoastResponse {
     roast: string;
     id: string;
+    enitity: string;
     meme: {
         output: string;
         outputFull: {

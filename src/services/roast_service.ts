@@ -1,9 +1,9 @@
-import { RoastLevel, RoastStatus, RoleType, Languages } from "../utils/constants";
+import { RoastLevel, RoleType, Languages } from "../utils/constants";
 import RoastResponse from "../model/roast_model";
 async function submitRoastRequest(
     roastLevel: string,
     roleType: string,
-    resumeText: string,
+    linkedInProfile: string,
     selectedFile: File | null,
     language: string,
     useImage: boolean
@@ -11,33 +11,57 @@ async function submitRoastRequest(
 ): Promise<RoastResponse> {
 
     const BASEURL = process.env.Backend_URL;
+    const isLinkedInProfile = linkedInProfile.length > 0;
+    var formData;
+    if (isLinkedInProfile) {
+        formData = {
+            roastLevel: Object.keys(RoastLevel).indexOf(roastLevel).toString(),
+            role: Object.keys(RoleType).indexOf(roleType).toString(),
+            linkedProfile: linkedInProfile,
+            language: Object.keys(Languages).indexOf(language).toString(),
+            meme: useImage.toString().toLowerCase(),
+        }
 
-    const formData = new FormData();
-    const roastIndex = Object.keys(RoastLevel).indexOf(roastLevel);
-    formData.append("roastLevel", roastIndex.toString());
-    const roleIndex = Object.keys(RoleType).indexOf(roleType);
-    formData.append("role", roleIndex.toString());
-    const languageIndex = Object.keys(Languages).indexOf(language);
-    formData.append("language", languageIndex.toString());
-    formData.append("meme", useImage.toString().toLowerCase());
-    if (selectedFile) {
-        formData.append("file", selectedFile);
+
+    } else {
+        formData = new FormData();
+        const roastIndex = Object.keys(RoastLevel).indexOf(roastLevel);
+        formData.append("roastLevel", roastIndex.toString());
+        const roleIndex = Object.keys(RoleType).indexOf(roleType);
+        formData.append("role", roleIndex.toString());
+        const languageIndex = Object.keys(Languages).indexOf(language);
+        formData.append("language", languageIndex.toString());
+        formData.append("meme", useImage.toString().toLowerCase());
+        if (selectedFile) {
+            formData.append("file", selectedFile);
+        }
+
     }
-    if (resumeText) {
-        formData.append("textBasedResume", resumeText);
+
+
+
+
+    const endpoint = linkedInProfile.length > 0 ? `${BASEURL}/roastLinkedIn` : `${BASEURL}/roast`;
+    var headers: { [key: string]: string } = {
+        "Accept": "application/json",
+    };
+    if (isLinkedInProfile) {
+        headers["Content-Type"] = "application/json";
     }
 
 
     const data = await fetch(
-        `${BASEURL}/roast`,
+        endpoint,
+
         {
             method: "POST",
-            body: formData,
-            headers: {
-                Accept: "application/json",
-            },
-            cache: 'no-store',
+            body: isLinkedInProfile ? JSON.stringify(formData) : formData as BodyInit,
+            headers: headers,
+
+
         });
+
+    console.log(data);
     if (data.ok) {
         var response = await data.json();
         //parse data

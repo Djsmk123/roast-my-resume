@@ -11,8 +11,11 @@ import BackgroundComponent from '@/components/background';
 import { FaGithub, FaTelegram } from 'react-icons/fa';
 import { useTheme } from '@/components/theme';
 import TermsCondition from '@/components/terms_condition';
+enum RoastType {
+  Resume = "My Resume",
+  LinkedIn = "My LinkedIn Profile"
+}
 
-const BASEURL = process.env.Backend_URL;
 
 const AnimatedCounter: React.FC<{ end: number }> = ({ end }) => {
   const [count, setCount] = useState(0);
@@ -37,7 +40,7 @@ const AnimatedCounter: React.FC<{ end: number }> = ({ end }) => {
 export default function Home() {
   const router = useRouter();
 
-  const [resumeText, setResumeText] = useState("");
+  const [linkedInProfileUrl, setLinkedInProfileUrl] = useState("");
   const [roastStatus, setRoastStatus] = useState(RoastStatus.initial);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [roastLevel, setRoastLevel] = useState("dark");
@@ -48,9 +51,10 @@ export default function Home() {
   const [openTerms, setOpenTerms] = useState(false);
   const [consent, setConsent] = useState(false);
   const theme = useTheme().theme;
+  const [roastType, setRoastType] = useState("My Resume");
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setResumeText(e.target.value);
+    setLinkedInProfileUrl(e.target.value);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +69,17 @@ export default function Home() {
       setUseImageGenerator(false);
     }
   };
+  const handleRoastTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedRoastType = e.target.value as RoastType;
+    setRoastType(selectedRoastType);
+
+    if (selectedRoastType === RoastType.Resume) {
+      setLinkedInProfileUrl("");
+    } else {
+      setSelectedFile(null);
+    }
+  };
+
 
   const handleRoleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRoleType(e.target.value);
@@ -102,8 +117,8 @@ export default function Home() {
       alert("Please select a language");
       return;
     }
-    if (!resumeText && !selectedFile) {
-      alert("Please provide a file or resume text");
+    if (!linkedInProfileUrl && !selectedFile) {
+      alert("Please provide a LinkedIn profile url or resume file");
       return;
     }
 
@@ -112,7 +127,7 @@ export default function Home() {
       const res = await submitRoastRequest(
         roastLevel,
         roleType,
-        resumeText,
+        linkedInProfileUrl,
         selectedFile,
         language,
         useImageGenerator,
@@ -158,32 +173,44 @@ export default function Home() {
 
           <div>
             {roastStatus !== RoastStatus.success && (
-              <div className="mb-4 flex flex-col items-center">
-                <div className="w-full">
-                  <label htmlFor="resumeText" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>
-                    Text-based Roast
-                  </label>
-                  <textarea
-                    id="resumeText"
-                    className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"} placeholder-gray-400`}
-                    rows={4}
-                    value={resumeText}
-                    onChange={handleTextChange}
-                    placeholder="Enter text here..."
-                  ></textarea>
+              <div className="mb-4">
+                <label htmlFor="roastType" className={`block mb-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Roast Type</label>
+                <select
+                  id="roastType"
+                  className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"}`}
+                  value={roastType}
+                  onChange={handleRoastTypeChange}
+                >
+                  {Object.entries(RoastType).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="w-full" style={{ marginTop: '1rem' }}>
+                  {roastType === RoastType.LinkedIn && (
+                    <textarea
+                      id="resumeText"
+                      className={`w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-${theme === "dark" ? "gray-800" : "white"} text-${theme === "dark" ? "white" : "black"} placeholder-gray-400`}
+                      rows={1}
+                      value={linkedInProfileUrl}
+                      onChange={handleTextChange}
+                      placeholder="LinkedIn Profile url."
+                    ></textarea>
+                  )}
                 </div>
-                <div className="my-2">
-                  <p className={`text-sm font-medium text-center ${theme === "dark" ? "text-white" : "text-black"}`}>OR</p>
-                </div>
-                <div className="w-full">
-                  <input
-                    type="file"
-                    id="fileInput"
-                    onChange={handleFileChange}
-                    accept=".pdf"
-                    className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${theme === "dark" ? "dark" : ""}`}
-                  />
-                </div>
+                {roastType === RoastType.Resume && (
+                  <div className="w-full">
+                    <input
+                      type="file"
+                      id="fileInput"
+                      onChange={handleFileChange}
+                      accept=".pdf"
+                      className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 ${theme === "dark" ? "dark" : ""}`}
+                    />
+                  </div>
+                )}
               </div>
             )}
             {roastStatus !== RoastStatus.success && (
@@ -257,10 +284,18 @@ export default function Home() {
               <button
                 className={`w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md ${roastStatus === RoastStatus.success ? "hidden" : ""}`}
                 onClick={handleSubmit}
+                style={{
+                  marginBottom: '0.8rem',
+                  margin: 'auto',
+                  justifyContent: 'center',
+                  width: '30%',
+                  display: 'block',
+
+                }}
                 disabled={roastStatus === RoastStatus.loading}
               >
                 {roastStatus === RoastStatus.initial || roastStatus === RoastStatus.error
-                  ? "Submit Roast"
+                  ? "Submit For Roast"
                   : "Roasting..."}
               </button>
             </div>

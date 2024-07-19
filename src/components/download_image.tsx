@@ -24,7 +24,6 @@ const DownloadImageComponent: React.FC<DownloadImageProps> = ({ html, afterDownl
                     afterDownload && afterDownload(dataUrl);
 
                 } catch (error) {
-                    console.error('Failed to convert HTML to image', error);
                     setError('Failed to convert HTML to image');
                     setLoading(false);
                 }

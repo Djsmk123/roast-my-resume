@@ -12,8 +12,7 @@ import { useTheme } from "@/components/theme";
 import { getRoastById } from "@/services/roast_service";
 import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 
-const BASEURL = process.env.Backend_URL;
-console.log("Base URL: ", BASEURL);
+
 
 export default function Home() {
     const { theme } = useTheme();
@@ -42,7 +41,7 @@ export default function Home() {
                 return;
             }
             const data = localStorage.getItem("roastResponse?id=" + id);
-            console.log("Data: ", data);
+
 
             if (data) {
                 setRoastResponse(JSON.parse(data));

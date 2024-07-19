@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Roast My Resume",
-  description: "Roast My Resume is a tool that uses AI to roast your resume.",
+  description: "Roast My Resume is a tool that uses AI to roast your resume and linkedin profile.",
 };
 
 export default function RootLayout({
