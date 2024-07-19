@@ -11,6 +11,8 @@ import BackgroundComponent from '@/components/background';
 import { FaGithub, FaTelegram } from 'react-icons/fa';
 import { useTheme } from '@/components/theme';
 import TermsCondition from '@/components/terms_condition';
+import { Alert, Snackbar } from '@mui/material';
+import snackbar from '@/components/snackbar';
 enum RoastType {
   Resume = "My Resume",
   LinkedIn = "My LinkedIn Profile"
@@ -52,6 +54,10 @@ export default function Home() {
   const [consent, setConsent] = useState(false);
   const theme = useTheme().theme;
   const [roastType, setRoastType] = useState("My Resume");
+  const [memeAllowed, setMemeAllowed] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [severity, setSeverity] = useState(snackbar.SnackBarSeverity.WARNING);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setLinkedInProfileUrl(e.target.value);
@@ -66,7 +72,12 @@ export default function Home() {
     const level = e.target.value;
     setRoastLevel(level);
     if (level === 'vulgar') {
+      setMemeAllowed(false);
       setUseImageGenerator(false);
+    } else {
+      setMemeAllowed(true);
+
+
     }
   };
   const handleRoastTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -98,6 +109,17 @@ export default function Home() {
     }
     getRoastCount((count: any) => setRoastCount(count));
   }, [roastStatus]);
+  const showToast = (message: string,
+    severity = snackbar.SnackBarSeverity.WARNING
+  ) => {
+    setSnackbarMessage(message);
+    setSeverity(severity);
+    setOpenSnackbar(true);
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
 
   const handleSubmit = async () => {
     if (roastStatus === RoastStatus.loading) return;
@@ -106,28 +128,28 @@ export default function Home() {
       return;
     }
     if (roastLevel === "") {
-      alert("Please select a roast level");
+      showToast("Please select a roast level");
       return;
     }
     if (roleType === "") {
-      alert("Please select a role type");
+      showToast("Please select a role type");
       return;
     }
     if (language === "") {
-      alert("Please select a language");
+      showToast("Please select a language");
       return;
     }
     if (!linkedInProfileUrl && !selectedFile) {
-      alert("Please provide a LinkedIn profile url or resume file");
+      showToast("Please provide a LinkedIn profile url or resume file");
       return;
     }
     //check if valid linkedin profile url
     if (roastType === RoastType.LinkedIn && !linkedInProfileUrl.includes("linkedin.com/in/")) {
-      alert("Please provide a valid LinkedIn profile url");
+      showToast("Please provide a valid LinkedIn profile url");
       return;
     }
     if (roastType === RoastType.Resume && !selectedFile) {
-      alert("Please provide a resume file");
+      showToast("Please provide a resume file");
       return;
     }
 
@@ -149,10 +171,15 @@ export default function Home() {
         localStorage.setItem("roastCountTimestamp", Date.now().toString());
         return newCount;
       });
+      //show snackbar
+      showToast("Roast request submitted successfully", snackbar.SnackBarSeverity.SUCCESS);
+
+      //redirect to roast page
+
       router.push("/roast?id=" + res?.id);
     } catch (e) {
       setRoastStatus(RoastStatus.error);
-      alert("An error occurred while submitting roast request");
+      showToast("An error occurred while submitting roast request", snackbar.SnackBarSeverity.ERROR);
     }
   };
 
@@ -270,14 +297,16 @@ export default function Home() {
                     ))}
                   </select>
                 </div>
-                <div className="mb-4 flex items-center">
-                  <Switch
-                    checked={useImageGenerator}
-                    onChange={(e) => setUseImageGenerator(e.target.checked)}
-                    color="primary"
-                  />
-                  <p className={`ml-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Use Image Generator</p>
-                </div>
+                {memeAllowed && (
+                  <div className="mb-4 flex items-center">
+                    <Switch
+                      checked={useImageGenerator}
+                      onChange={(e) => setUseImageGenerator(e.target.checked)}
+                      color="primary"
+                    />
+                    <p className={`ml-2 text-sm font-medium ${theme === "dark" ? "text-white" : "text-black"}`}>Use Image Generator</p>
+                  </div>
+                )}
                 {useImageGenerator && (
                   <div className='text-sm font-medium text-red-500'>
                     Using the image generator will take longer to process your request.
@@ -300,6 +329,7 @@ export default function Home() {
                   justifyContent: 'center',
                   width: '30%',
                   display: 'block',
+                  borderRadius: '16px',
 
                 }}
                 disabled={roastStatus === RoastStatus.loading}
@@ -337,7 +367,11 @@ export default function Home() {
             consent={consent}
             setConsent={setConsent}
           />
+          <snackbar.SnackBarComponent
+            severity={severity}
+            openSnackbar={openSnackbar} snackbarMessage={snackbarMessage} handleCloseSnackbar={handleCloseSnackbar}>
 
+          </snackbar.SnackBarComponent>
 
 
 

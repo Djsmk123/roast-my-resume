@@ -10,7 +10,7 @@ import DownloadImageComponent from "@/components/download_image";
 import Typewriter from "@/components/typwriter";
 import { useTheme } from "@/components/theme";
 import { getRoastById } from "@/services/roast_service";
-import { Alert, Box, CircularProgress, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
 
 
 
@@ -88,36 +88,50 @@ export default function Home() {
         }
 
         return (
-            <Box mt={4} p={4} className={theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} borderRadius={1}>
-                <Typography variant="h5" mb={2} fontWeight="fontWeightBold">Roast Result</Typography>
-                <Typewriter text={roastResponse.roast} />
-                {roastResponse.meme && roastResponse.meme.outputFull && roastResponse.meme.outputFull.html && (
-                    <Box mt={4} display="flex" justifyContent="center">
-                        <DownloadImageComponent
-                            afterDownload={(url) => setImageUrl(url)}
-                            html={roastResponse.meme.outputFull.html}
-                        />
-                    </Box>
-                )}
+            <>
+                <Box mt={4} p={4} className={theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-black"} borderRadius={1}>
+                    <Typography variant="h5" mb={2} fontWeight="fontWeightBold">Roast Result</Typography>
+                    <Typewriter text={roastResponse.roast} />
+                    {roastResponse.meme && roastResponse.meme.outputFull && roastResponse.meme.outputFull.html && (
+                        <Box mt={4} display="flex" justifyContent="center">
+                            <DownloadImageComponent
+                                afterDownload={(url) => setImageUrl(url)}
+                                html={roastResponse.meme.outputFull.html}
+                            />
+                        </Box>
+                    )}
 
-                <Box mt={2} display="flex" justifyContent="space-around" mb={1}>
-                    <a
-                        href="https://github.com/Djsmk123/roast-my-resume"
-                        className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
-                    >
-                        <FaGithub size={24} />
-                        <Typography variant="body2" ml={1}>View on GitHub</Typography>
-                    </a>
-                    <Typography
-                        onClick={() => setShareOpen(!shareOpen)}
-                        className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
-                    >
-                        <SlShare size={24} />
-                        <Typography variant="body2" ml={1}>Share</Typography>
-                    </Typography>
+                    <Box mt={2} display="flex" justifyContent="space-around" mb={1}>
+                        <a
+                            href="https://github.com/Djsmk123/roast-my-resume"
+                            className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
+                        >
+                            <FaGithub size={24} />
+                            <Typography variant="body2" ml={1}>View on GitHub</Typography>
+                        </a>
+                        <Typography
+                            onClick={() => setShareOpen(!shareOpen)}
+                            className={`flex items-center ${theme === "dark" ? "text-white hover:text-gray-400" : "text-gray-500 hover:text-gray-500"}`}
+                        >
+                            <SlShare size={24} />
+                            <Typography variant="body2" ml={1}>Share</Typography>
+                        </Typography>
+                    </Box>
+                    {shareOpen && <ShareMenu roastResponse={roastResponse} imageUrl={imageUrl} />}
                 </Box>
-                {shareOpen && <ShareMenu roastResponse={roastResponse} imageUrl={imageUrl} />}
-            </Box>
+                <Box mt={2} display="flex" justifyContent="center"
+
+
+                >
+                    <Button variant="contained"
+                        style={{
+                            borderRadius: "8px",
+                        }}
+
+
+                        onClick={() => window.location.href = "/"}>Roast Me Again</Button>
+                </Box>
+            </>
         );
     };
 
