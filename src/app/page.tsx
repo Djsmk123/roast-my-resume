@@ -126,6 +126,10 @@ export default function Home() {
       alert("Please provide a valid LinkedIn profile url");
       return;
     }
+    if (roastType === RoastType.Resume && !selectedFile) {
+      alert("Please provide a resume file");
+      return;
+    }
 
 
     try {
